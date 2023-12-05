@@ -23,7 +23,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component);
   }
 }
-app.use(ElementPlus);
+app.use(ElementPlus, {
+  size: 'small'
+});
 app.directive('click-outside', clickOutside);
 app.directive('toolTip', toolTip);
 app.use(VueVirtualScroller);

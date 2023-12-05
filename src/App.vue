@@ -1,10 +1,14 @@
 <script setup>
-  import Cascader from './components/Cascader.vue';
+  import { ref } from 'vue';
+  import Cascader from '@/components/Cascader/index.vue';
+  import dataJson from '@/utils/data.js';
+  const data = ref(dataJson.data.children);
+  const selectedIds = ref([46395, 46396]);
 </script>
 
 <template>
   <div class="app-main">
-    <Cascader />
+    <Cascader :data="data" v-model="selectedIds" />
   </div>
 </template>
 
