@@ -113,9 +113,10 @@
 </template>
 
 <script setup name="ZCascader">
-  import { ref, computed, watch, onMounted } from 'vue';
+  import { ref, computed, watch } from 'vue';
   import RenderList from './List.vue';
   import TreeStore from '@/utils/Tree.js';
+  import { ElMessage } from 'element-plus';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     data: {
@@ -148,18 +149,18 @@
       type: String,
       default: '/'
     },
-    valueKey: {
-      type: String,
-      default: 'value'
-    },
-    labelKey: {
-      type: String,
-      default: 'label'
-    },
-    childrenKey: {
-      type: String,
-      default: 'children'
-    },
+    // valueKey: {
+    //   type: String,
+    //   default: 'value'
+    // },
+    // labelKey: {
+    //   type: String,
+    //   default: 'label'
+    // },
+    // childrenKey: {
+    //   type: String,
+    //   default: 'children'
+    // },
     expandTrigger: {
       //触发展开的方式
       type: String,
@@ -213,9 +214,9 @@
     store.value = new TreeStore({
       data: props.data,
       separator: props.separator,
-      valueKey: props.valueKey,
-      labelKey: props.labelKey,
-      childrenKey: props.childrenKey,
+      valueKey: props.props.value,
+      labelKey: props.props.label,
+      childrenKey: props.props.children,
       showLeafLabel: props.showLeafLabel
     });
     root.value = store.value.root;
@@ -298,29 +299,36 @@
         });
         updateSelect(store.value.selectedIds);
       } else {
-        let tempResult = store.value.nodeList;
-        tempResult = tempResult.filter((o) => o.isLeaf);
-        tempResult.forEach((node) => {
-          node.check(true);
+        //无搜索内容不允许全选
+        ElMessage({
+          message: '请先输入搜索内容,否则不允许全选',
+          type: 'warning'
         });
-        updateSelect(store.value.selectedIds);
+        zCheckedAll.value = false;
       }
     } else {
-      let tempResult = store.value.nodeList;
-      tempResult = tempResult.filter((o) => o.isLeaf);
+      let tempResult = searchResult.value;
       tempResult.forEach((node) => {
         node.check(false);
       });
       updateSelect(store.value.selectedIds);
     }
   };
-  //执行反选操作
+  //执行反选操作[基于搜索内容的反选]
   const handleCheckReverseChange = (val) => {
     //把原先选的取反
     zCheckedReverse.value = val;
+    if (!searchText.value.trim()) {
+      zCheckedReverse.value = false;
+      //无搜索内容不允许反选
+      ElMessage({
+        message: '请先输入搜索内容,否则不允许反选',
+        type: 'warning'
+      });
+      return;
+    }
     zCheckedAll.value = false;
-    let tempResult = store.value.nodeList;
-    tempResult = tempResult.filter((o) => o.isLeaf);
+    let tempResult = searchResult.value;
     tempResult.forEach((node) => {
       node.check(!node.checked);
     });
