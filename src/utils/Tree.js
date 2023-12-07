@@ -1,7 +1,7 @@
 /*
  * @Author: ztao
  * @Date: 2023-12-05 16:32:33
- * @LastEditTime: 2023-12-05 16:32:37
+ * @LastEditTime: 2023-12-07 17:48:45
  * @Description:
  */
 import Node from './Node.js';
@@ -18,7 +18,7 @@ export default class TreeStore {
     this.selectedIds = [];
     this.maxLevel = 0;
     this.root = new Node({
-      data: this.data,
+      cascaderData: this.cascaderData,
       store: this
     });
   }

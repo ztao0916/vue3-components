@@ -4,7 +4,7 @@
       v-slot="{ item, nodeIndex }"
       :items="list"
       :item-size="30"
-      :item-secondary-size="220"
+      :item-secondary-size="200"
       :grid-items="1"
       key-field="id"
       class="recycle-scroller"
@@ -23,7 +23,9 @@
               @update:model-value="handleCheck(item.checked, item)"
             />
           </span>
-          <span class="li-label">{{ item[labelKey] }}</span>
+          <span class="li-label" :title="item[labelKey]">{{
+            item[labelKey]
+          }}</span>
         </p>
         <el-icon v-if="item.childNodes && item.childNodes.length > 0">
           <ArrowRight />
@@ -34,6 +36,7 @@
 </template>
 
 <script setup>
+  import { watch } from 'vue';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     activeList: {
@@ -85,11 +88,21 @@
     node.checked = val;
     emit('handle-check', node);
   };
+
+  watch(
+    () => props,
+    () => {
+      console.log(props);
+    },
+    {
+      immediate: true
+    }
+  );
 </script>
 
 <style lang="scss" scoped>
   .z-cascader-menu {
-    min-width: 220px;
+    min-width: 200px;
     width: fit-content;
     height: 204px;
     box-sizing: border-box;
@@ -118,7 +131,8 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
-          width: 100%;
+          min-width: 180px !important;
+          width: fit-content !important;
           height: 100%;
           padding: 0 10px;
           box-sizing: border-box;
@@ -140,16 +154,22 @@
             &:hover {
               background-color: #f5f7fa;
             }
+            p {
+              width: 100%;
+              display: flex;
+              align-items: center;
+              span.li-label {
+                margin-left: 5px;
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 125px;
+              }
+            }
           }
           .active-li {
             color: #50a6ff;
-          }
-          .li-label {
-            margin-left: 5px;
-            display: inline-flex;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
           }
         }
       }

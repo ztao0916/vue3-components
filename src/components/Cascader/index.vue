@@ -101,6 +101,7 @@
                 <el-checkbox
                   v-model="item.checked"
                   :label="item.totalLabel"
+                  :title="item.totalLabel"
                   @update:model-value="handleCheck(item)"
                 />
               </div>
@@ -180,6 +181,8 @@
       default: false
     }
   });
+  //定义labelKey
+  const labelKey = computed(() => props.props.label);
   //定义emit,传递给父组件对应的事件
   const emits = defineEmits(['update:modelValue']);
   //定义组件内数据
@@ -212,7 +215,7 @@
   //初始化结构[不考虑select相关]
   const init = () => {
     store.value = new TreeStore({
-      data: props.data,
+      cascaderData: props.data,
       separator: props.separator,
       valueKey: props.props.value,
       labelKey: props.props.label,
@@ -407,6 +410,7 @@
   watch(
     () => props.data,
     () => {
+      console.log(props.props);
       init();
     },
     {
@@ -485,7 +489,7 @@
     }
   }
   .zdropdown {
-    width: fit-content;
+    // width: fit-content;
     position: absolute;
     display: flex;
     background-color: #fff;
@@ -565,6 +569,14 @@
         justify-content: space-between;
         &:hover {
           background-color: #f5f7fa;
+        }
+        :deep(.el-checkbox__label) {
+          font-size: 14px;
+          width: 350px;
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
     }

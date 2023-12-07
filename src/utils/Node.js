@@ -2,7 +2,7 @@ let nodeIdSeed = 0;
 export default class Node {
   constructor(options) {
     this.id = nodeIdSeed++;
-    this.data = null;
+    this.cascaderData = null;
     this.parent = null;
     this.isLeaf = true;
     this.checked = false;
@@ -13,6 +13,7 @@ export default class Node {
       }
     }
     let store = this.store;
+
     this[store.valueKey] = options[store.valueKey] || null;
     this.level = 0;
     this.childNodes = [];
@@ -30,17 +31,19 @@ export default class Node {
       this.parent && this.parent[store.valueKey]
         ? [...this.parent._idArr, this[store.valueKey]]
         : [this[store.valueKey]];
-    this.setData(this.data);
+    console.log('34行', this);
+    this.setData(this.cascaderData);
   }
 
   setData(data) {
     let store = this.store;
-    this.data = data;
+    this.cascaderData = data;
     this.childNodes = [];
     let children;
-    if (this.level === 0 && this.data instanceof Array) {
-      children = this.data;
+    if (this.level === 0 && this.cascaderData instanceof Array) {
+      children = this.cascaderData;
     } else {
+      console.log('49行', store.childrenKey, this[store.childrenKey]);
       // eslint-disable-next-line no-prototype-builtins
       children = this.hasOwnProperty(store.childrenKey)
         ? this[store.childrenKey]
