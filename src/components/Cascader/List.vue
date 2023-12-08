@@ -36,7 +36,6 @@
 </template>
 
 <script setup>
-  import { watch } from 'vue';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     activeList: {
@@ -88,16 +87,6 @@
     node.checked = val;
     emit('handle-check', node);
   };
-
-  watch(
-    () => props,
-    () => {
-      console.log(props);
-    },
-    {
-      immediate: true
-    }
-  );
 </script>
 
 <style lang="scss" scoped>

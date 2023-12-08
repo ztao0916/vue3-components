@@ -31,7 +31,6 @@ export default class Node {
       this.parent && this.parent[store.valueKey]
         ? [...this.parent._idArr, this[store.valueKey]]
         : [this[store.valueKey]];
-    console.log('34行', this);
     this.setData(this.cascaderData);
   }
 
@@ -43,7 +42,6 @@ export default class Node {
     if (this.level === 0 && this.cascaderData instanceof Array) {
       children = this.cascaderData;
     } else {
-      console.log('49行', store.childrenKey, this[store.childrenKey]);
       // eslint-disable-next-line no-prototype-builtins
       children = this.hasOwnProperty(store.childrenKey)
         ? this[store.childrenKey]
