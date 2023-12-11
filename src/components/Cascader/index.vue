@@ -150,18 +150,6 @@
       type: String,
       default: '/'
     },
-    // valueKey: {
-    //   type: String,
-    //   default: 'value'
-    // },
-    // labelKey: {
-    //   type: String,
-    //   default: 'label'
-    // },
-    // childrenKey: {
-    //   type: String,
-    //   default: 'children'
-    // },
     expandTrigger: {
       //触发展开的方式
       type: String,
@@ -234,6 +222,16 @@
         };
       }
     );
+    //初始化选中项
+    let tempResult = store.value.nodeList;
+    tempResult = tempResult.filter((o) => o.isLeaf);
+    selectedNodes.value = tempResult.filter((item) =>
+      props.modelValue.includes(item[valueKey.value])
+    );
+    selectedNodes.value.forEach((node) => {
+      node.check(true);
+    });
+    updateSelect(store.value.selectedIds);
   };
 
   //当selectedLabels.length>showNum.value时,展示showNum个label,后面用+1, +2号代替

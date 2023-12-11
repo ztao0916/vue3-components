@@ -5,10 +5,8 @@
   import dataJson from '@/utils/data.js';
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
-  const selectedIds = ref([]);
-  watch(selectedIds.value, (val) => {
-    console.log('🚀 ~ file: App.vue:10 ~ watch ~ al:', val);
-  });
+  const selectedIds = ref([600621, 600686]);
+  console.log('🚀 ~ file: App.vue:9 ~ selectedIds:', selectedIds.value);
 </script>
 
 <template>
@@ -22,7 +20,7 @@
         value: 'categoryId'
       }"
     />
-    <Cascader :data="data" v-model="selectedIds" />
+    <!-- <Cascader :data="data" v-model="selectedIds" /> -->
   </div>
 </template>
 
