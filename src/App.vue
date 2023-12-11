@@ -1,12 +1,14 @@
 <script setup>
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import dataJson from '@/utils/data.js';
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
-  console.log('data', dataJson2.data);
   const selectedIds = ref([]);
+  watch(selectedIds.value, (val) => {
+    console.log('🚀 ~ file: App.vue:10 ~ watch ~ al:', val);
+  });
 </script>
 
 <template>

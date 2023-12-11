@@ -181,8 +181,9 @@
       default: false
     }
   });
-  //定义labelKey
+  //定义labelKey/valueKey
   const labelKey = computed(() => props.props.label);
+  const valueKey = computed(() => props.props.value);
   //定义emit,传递给父组件对应的事件
   const emits = defineEmits(['update:modelValue']);
   //定义组件内数据
@@ -222,6 +223,7 @@
       childrenKey: props.props.children,
       showLeafLabel: props.showLeafLabel
     });
+    console.log(store.value);
     root.value = store.value.root;
     maxLevellist.value = Array.from(
       { length: store.value.maxLevel - 1 },
@@ -371,7 +373,7 @@
   };
   const handleCheck = (node) => {
     node.check(node.checked);
-    updateSelect(store.value.selectedIds);
+    updateSelect(store.value.selectedIds, false, true);
   };
   //选中以后,切换状态和获取选中项label
   const updateSelect = (data = [], needCheckNode = false, setValue = false) => {
@@ -400,13 +402,6 @@
       selectedIds.value = tempSelectedIds;
     }
   };
-  const getKey = () => {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      let r = (Math.random() * 16) | 0;
-      let v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  };
   watch(
     () => props.data,
     () => {
@@ -418,15 +413,10 @@
     }
   );
   watch(
-    () => selectedIds.value,
+    () => selectedNodes.value,
     (val) => {
-      let tempResult = store.value.nodeList;
-      tempResult = tempResult.filter((o) => o.isLeaf);
-      let initSelectedNodes = tempResult.filter((o) => val.includes(o.value));
-      initSelectedNodes.forEach((node) => {
-        node.check(true);
-      });
-      updateSelect(store.value.selectedIds, true, true);
+      let idsArr = val.map((item) => item[valueKey.value]);
+      selectedIds.value = idsArr;
     },
     {
       immediate: true
