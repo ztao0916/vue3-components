@@ -223,7 +223,6 @@
       childrenKey: props.props.children,
       showLeafLabel: props.showLeafLabel
     });
-    console.log(store.value);
     root.value = store.value.root;
     maxLevellist.value = Array.from(
       { length: store.value.maxLevel - 1 },
@@ -405,7 +404,6 @@
   watch(
     () => props.data,
     () => {
-      console.log(props.props);
       init();
     },
     {

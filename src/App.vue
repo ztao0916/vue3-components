@@ -22,7 +22,7 @@
         value: 'categoryId'
       }"
     />
-    <!-- <Cascader :data="data" v-model="selectedIds" /> -->
+    <Cascader :data="data" v-model="selectedIds" />
   </div>
 </template>
 
