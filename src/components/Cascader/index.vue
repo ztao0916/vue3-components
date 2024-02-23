@@ -32,18 +32,26 @@
       <div v-show="isVisible" ref="zdropdown" class="zdropdown" @click.stop>
         <div class="zdropdown__search">
           <div class="zdropdown__checkbox">
-            <el-checkbox
-              v-model="zCheckedAll"
-              label="全选"
-              @change="handleCheckAllChange"
-            />
-            <el-checkbox
-              v-model="zCheckedReverse"
-              label="反选"
-              @change="handleCheckReverseChange"
-            />
-            <div class="zdropdown__clear" @click="handleCheckedClearChange">
-              <el-icon><Delete /></el-icon>清空
+            <div
+              @click="handleCheckAllChange"
+              class="zdropdown__checkbox__item"
+            >
+              <el-icon><Finished /></el-icon>
+              <span class="icon__text">全选</span>
+            </div>
+            <div
+              @click="handleCheckReverseChange"
+              class="zdropdown__checkbox__item"
+            >
+              <el-icon><Switch /></el-icon>
+              <span class="icon__text">反选</span>
+            </div>
+            <div
+              @click="handleCheckedClearChange"
+              class="zdropdown__checkbox__item"
+            >
+              <el-icon><Close /></el-icon>
+              <span class="icon__text">清空</span>
             </div>
           </div>
           <div class="zdropdown__input">
@@ -56,7 +64,6 @@
               <render-list
                 :only-last="onlyLast"
                 :label-key="labelKey"
-                :expand-trigger="expandTrigger"
                 :list="root.childNodes"
                 :level="1"
                 :active-list="activeList"
@@ -77,7 +84,6 @@
                   :list="showData[item.id]"
                   :level="item.id + 1"
                   :label-key="labelKey"
-                  :expand-trigger="expandTrigger"
                   :active-list="activeList"
                   @handle-click="handleClick"
                   @handle-check="handleCheck"
@@ -114,18 +120,19 @@
 </template>
 
 <script setup name="ZCascader">
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed, watch, onMounted } from 'vue';
   import RenderList from './List.vue';
   import TreeStore from '@/utils/Tree.js';
-  import { ElMessage } from 'element-plus';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     data: {
+      //父组件传递过来的数据源
       type: Array,
       required: true,
       default: () => []
     },
     props: {
+      //父组件传递过来的数据源的配置项
       type: Object,
       default: () => {
         return {
@@ -150,19 +157,10 @@
       type: String,
       default: '/'
     },
-    expandTrigger: {
-      //触发展开的方式
-      type: String,
-      default: 'click'
-    },
     onlyLast: {
       //设置只有最后一个节点可选中
       type: Boolean,
       default: false
-    },
-    isTwoDimensionValue: {
-      type: Boolean,
-      default: true
     },
     showLeafLabel: {
       type: Boolean,
@@ -182,13 +180,11 @@
   const showData = ref({});
   const activeClass = ref('floor-width-1');
   const activeList = ref([]);
-  const selectedNodes = ref([]); //选中完整项
   const searchText = ref('');
   const searchResult = ref([]); //搜索后的选项
   const zcascader = ref(null); // 用于获取点击输入框的dom
   const zdropdown = ref(null); // 用于获取下拉框的dom
-  const zCheckedAll = ref(false); //是否全选
-  const zCheckedReverse = ref(false); //是否反选
+  const selectedNodes = ref([]); //选中的节点
   //选中项ID
   const selectedIds = computed({
     get() {
@@ -198,44 +194,9 @@
       emits('update:modelValue', val);
     }
   });
-  const isSearching = computed(() => {
-    return !(searchText.value.trim() === '');
-  });
-  //初始化结构[不考虑select相关]
-  const init = () => {
-    store.value = new TreeStore({
-      cascaderData: props.data,
-      separator: props.separator,
-      valueKey: props.props.value,
-      labelKey: props.props.label,
-      childrenKey: props.props.children,
-      showLeafLabel: props.showLeafLabel
-    });
-    root.value = store.value.root;
-    maxLevellist.value = Array.from(
-      { length: store.value.maxLevel - 1 },
-      (v, i) => {
-        showData.value[i + 1] = [];
-        return {
-          id: i + 1,
-          rendered: false
-        };
-      }
-    );
-    //初始化选中项
-    let tempResult = store.value.nodeList;
-    tempResult = tempResult.filter((o) => o.isLeaf);
-    selectedNodes.value = tempResult.filter((item) =>
-      props.modelValue.includes(item[valueKey.value])
-    );
-    selectedNodes.value.forEach((node) => {
-      node.check(true);
-    });
-    updateSelect(store.value.selectedIds);
-  };
-
   //当selectedLabels.length>showNum.value时,展示showNum个label,后面用+1, +2号代替
   const selectedLabels = computed(() => {
+    initSelected();
     let selectedLabelsList = selectedNodes.value.map((item) => item.showLabel);
     if (selectedNodes.value.length > props.showNum) {
       let newArr = selectedLabelsList.slice(0, props.showNum);
@@ -244,19 +205,11 @@
       return selectedLabelsList;
     }
   });
-  //定义组件内方法
-  //根据输入框的位置设置下拉框的位置
-  const setDropdownPosition = () => {
-    const { top, left } = zcascader.value.getBoundingClientRect();
-    zdropdown.value.style.top = `${top + 34}px`;
-    zdropdown.value.style.left = `${left}px`;
-  };
-  watch(isVisible, (newVal) => {
-    if (newVal) {
-      setDropdownPosition();
-    }
+
+  const isSearching = computed(() => {
+    return !(searchText.value.trim() === '');
   });
-  //监听搜索条件的变化
+  //监听搜索条件的变化[不涉及选中]
   watch(searchText, (newVal) => {
     let tempResult = store.value.nodeList;
     tempResult = tempResult.filter((o) => o.isLeaf);
@@ -278,63 +231,15 @@
   });
   //点击清空,执行功能如下
   const handleCheckedClearChange = () => {
-    let tempResult = store.value.nodeList;
-    tempResult = tempResult.filter((o) => o.isLeaf);
-    tempResult.forEach((node) => {
-      node.check(false);
-    });
-    zCheckedAll.value = false;
-    zCheckedReverse.value = false;
-    updateSelect(store.value.selectedIds);
+    console.log('点击清空');
   };
   //执行全选操作
-  const handleCheckAllChange = (val) => {
-    zCheckedAll.value = val;
-    zCheckedReverse.value = false;
-    if (val) {
-      //判断是否有搜索值,如果有的话,只全选searchResult,否则全选全部
-      if (searchText.value.trim()) {
-        //获取匹配的项目
-        let tempResult = searchResult.value;
-        tempResult.forEach((node) => {
-          node.check(true);
-        });
-        updateSelect(store.value.selectedIds);
-      } else {
-        //无搜索内容不允许全选
-        ElMessage({
-          message: '请先输入搜索内容,否则不允许全选',
-          type: 'warning'
-        });
-        zCheckedAll.value = false;
-      }
-    } else {
-      let tempResult = searchResult.value;
-      tempResult.forEach((node) => {
-        node.check(false);
-      });
-      updateSelect(store.value.selectedIds);
-    }
+  const handleCheckAllChange = () => {
+    console.log('点击全选');
   };
   //执行反选操作[基于搜索内容的反选]
-  const handleCheckReverseChange = (val) => {
-    //把原先选的取反
-    zCheckedReverse.value = val;
-    if (!searchText.value.trim()) {
-      zCheckedReverse.value = false;
-      //无搜索内容不允许反选
-      ElMessage({
-        message: '请先输入搜索内容,否则不允许反选',
-        type: 'warning'
-      });
-      return;
-    }
-    zCheckedAll.value = false;
-    let tempResult = searchResult.value;
-    tempResult.forEach((node) => {
-      node.check(!node.checked);
-    });
-    updateSelect(store.value.selectedIds);
+  const handleCheckReverseChange = () => {
+    console.log('点击反选');
   };
   //关闭tags
   const handleCloseTags = (label) => {
@@ -351,10 +256,8 @@
     isVisible.value = false;
     searchResult.value = [];
     searchText.value = '';
-    zCheckedAll.value = false;
-    zCheckedReverse.value = false;
   };
-  //点击操作,接受子组件传递过来的值
+  //点击展示次级节点
   const handleClick = (node, levelIndex, level) => {
     if (maxLevellist.value[level - 1]) {
       maxLevellist.value[level - 1].rendered = true;
@@ -368,56 +271,84 @@
     showData.value[level] = node.childNodes;
     activeList.value = tempList;
   };
+  //点击选中节点
   const handleCheck = (node) => {
     node.check(node.checked);
-    updateSelect(store.value.selectedIds, false, true);
+    updateSelect(store.value.selectedIds, false);
   };
-  //选中以后,切换状态和获取选中项label
-  const updateSelect = (data = [], needCheckNode = false, setValue = false) => {
-    let tempSelectedNodes = [];
-    let tempSelectedIds = [];
+  //选中以后,切换状态和获取选中项label[这里是修改的重点],data是选中项的id集合
+  const updateSelect = (data = [], needCheckNode = false) => {
+    let tempSelectedNodes = []; //存储临时选中项
+    let tempSelectedIds = []; //存储临时选中项ID
     data.forEach((o) => {
-      let targetNode;
-      if (setValue) {
-        targetNode = store.value.nodesMap[o];
-        if (targetNode) {
-          tempSelectedIds.push(targetNode.value);
-        }
-      } else {
-        targetNode = store.value.nodesMap[o];
-        if (targetNode) {
-          tempSelectedIds.push(targetNode.value);
-        }
-      }
+      let targetNode = store.value.nodesMap[o];
       if (targetNode) {
-        needCheckNode && targetNode.check(true);
+        tempSelectedIds.push(targetNode.value);
         tempSelectedNodes.push(targetNode);
+        needCheckNode && targetNode.check(true);
       }
     });
     selectedNodes.value = tempSelectedNodes;
-    if (!setValue) {
-      selectedIds.value = tempSelectedIds;
-    }
+    selectedIds.value = tempSelectedIds;
   };
-  watch(
-    () => props.data,
-    () => {
-      init();
-    },
-    {
-      immediate: true
-    }
-  );
-  watch(
-    () => selectedNodes.value,
-    (val) => {
-      let idsArr = val.map((item) => item[valueKey.value]);
-      selectedIds.value = idsArr;
-    },
-    {
-      immediate: true
-    }
-  );
+
+  //根据输入框的位置设置下拉框的位置
+  const setDropdownPosition = () => {
+    const { top, left } = zcascader.value.getBoundingClientRect();
+    zdropdown.value.style.top = `${top + 34}px`;
+    zdropdown.value.style.left = `${left}px`;
+  };
+
+  //初始化数据结构
+  const init = () => {
+    store.value = new TreeStore({
+      cascaderData: props.data,
+      separator: props.separator,
+      valueKey: props.props.value,
+      labelKey: props.props.label,
+      childrenKey: props.props.children,
+      showLeafLabel: props.showLeafLabel
+    });
+    root.value = store.value.root;
+    maxLevellist.value = Array.from(
+      { length: store.value.maxLevel - 1 },
+      (v, i) => {
+        showData.value[i + 1] = [];
+        return {
+          id: i + 1,
+          rendered: false
+        };
+      }
+    );
+    //初始化选中项
+    initSelected();
+  };
+  //初始化选中项
+  const initSelected = () => {
+    let startTime = new Date().getTime();
+    let tempResult = store.value.nodeList || [];
+    tempResult = tempResult.filter((o) => o.isLeaf);
+    selectedNodes.value = tempResult.filter((item) =>
+      props.modelValue.includes(item[valueKey.value])
+    );
+    selectedNodes.value.forEach((node) => {
+      node.check(true);
+    });
+    console.log(
+      '首先执行初始化,耗时:',
+      `${new Date().getTime() - startTime}ms`,
+      store.value
+    );
+  };
+  //mounted时执行
+  onMounted(() => {
+    //初始化
+    init();
+    //设置下拉框的位置
+    setDropdownPosition();
+    //打印mounted信息
+    console.log('然后进入mouted事件,组件加载完成');
+  });
 </script>
 
 <style lang="scss" scoped>
@@ -488,8 +419,25 @@
       padding: 10px;
       border: 1px solid #dcdfe6;
       border-right: none;
-      :deep(.el-checkbox) {
-        margin-right: 9px !important;
+      .zdropdown__checkbox {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-sizing: border-box;
+        &__item {
+          display: flex;
+          cursor: pointer;
+          border-radius: 5px;
+          color: #999;
+          align-items: center;
+          justify-content: flex-start;
+          &:hover {
+            color: #409eff;
+          }
+        }
+        .icon__text {
+          font-size: 14px;
+        }
       }
       .zdropdown__input {
         margin-top: 20px;

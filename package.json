@@ -11,6 +11,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.4.2",
+    "mt-image-editor-sdk": "2.1.0-alpha.1",
     "normalize.css": "^8.0.1",
     "sass": "^1.69.5",
     "vue": "^3.3.4",

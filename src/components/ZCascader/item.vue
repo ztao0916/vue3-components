@@ -16,7 +16,7 @@
         @click="handleClick(item, nodeIndex, level)"
       >
         <p>
-          <span v-show="!onlyLast || (onlyLast && item.isLeaf)" @click.stop>
+          <span v-show="item.isLeaf" @click.stop>
             <el-checkbox
               v-model="item.checked"
               :disabled="item.disabled"
@@ -39,29 +39,29 @@
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     activeList: {
+      //当前选中的节点
       type: Array,
       default: () => []
     },
     list: {
+      //所有的节点
       type: Array,
       default: () => []
     },
     level: {
+      //当前级别
       type: [Number, String],
       default: 1
     },
     labelKey: {
+      //label展示
       type: String,
       default: 'label'
-    },
-    onlyLast: {
-      type: Boolean,
-      default: false
     }
   });
   //定义emit,传递给父组件对应的事件
   const emit = defineEmits(['handle-click', 'handle-check']);
-  //定义data,子组件内部使用的数据
+
   const handleClick = (node, levelIndex, level) => {
     emit('handle-click', node, levelIndex, level);
   };

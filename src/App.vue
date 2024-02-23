@@ -1,26 +1,20 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { nextTick, ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import dataJson from '@/utils/data.js';
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
-  const selectedIds = ref([600621, 600686]);
-  console.log('🚀 ~ file: App.vue:9 ~ selectedIds:', selectedIds.value);
+  const selectedIds = ref([44735, 44736]);
+  const clearHandle = () => {
+    selectedIds.value = [];
+  };
 </script>
 
 <template>
   <div class="app-main">
-    <Cascader
-      :data="data2"
-      v-model="selectedIds"
-      :props="{
-        label: 'cnName',
-        children: 'children',
-        value: 'categoryId'
-      }"
-    />
-    <!-- <Cascader :data="data" v-model="selectedIds" /> -->
+    <Cascader :data="data" v-model="selectedIds" />
+    <el-button @click="clearHandle">清空选中</el-button>
   </div>
 </template>
 
