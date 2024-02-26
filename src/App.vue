@@ -1,5 +1,5 @@
 <script setup>
-  import { nextTick, ref } from 'vue';
+  import { ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import dataJson from '@/utils/data.js';

@@ -19,7 +19,7 @@
             </template>
           </div>
         </div>
-        <el-input readonly>
+        <el-input readonly :placeholder="showPlaceholder()">
           <template #suffix>
             <el-icon v-if="isVisible"><ArrowUp /></el-icon>
             <el-icon v-else><ArrowDown /></el-icon>
@@ -32,24 +32,15 @@
       <div v-show="isVisible" ref="zdropdown" class="zdropdown" @click.stop>
         <div class="zdropdown__search">
           <div class="zdropdown__checkbox">
-            <div
-              @click="handleCheckAllChange"
-              class="zdropdown__checkbox__item"
-            >
+            <div @click="handleCheckAllChange">
               <el-icon><Finished /></el-icon>
               <span class="icon__text">全选</span>
             </div>
-            <div
-              @click="handleCheckReverseChange"
-              class="zdropdown__checkbox__item"
-            >
+            <div @click="handleCheckReverseChange">
               <el-icon><Switch /></el-icon>
               <span class="icon__text">反选</span>
             </div>
-            <div
-              @click="handleCheckedClearChange"
-              class="zdropdown__checkbox__item"
-            >
+            <div @click="handleCheckedClearChange">
               <el-icon><Close /></el-icon>
               <span class="icon__text">清空</span>
             </div>
@@ -122,17 +113,15 @@
 <script setup name="ZCascader">
   import { ref, computed, watch, onMounted } from 'vue';
   import RenderList from './List.vue';
-  import TreeStore from '@/utils/Tree.js';
+  import TreeStore from '../../utils/Tree.js';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
     data: {
-      //父组件传递过来的数据源
       type: Array,
       required: true,
       default: () => []
     },
     props: {
-      //父组件传递过来的数据源的配置项
       type: Object,
       default: () => {
         return {
@@ -162,9 +151,17 @@
       type: Boolean,
       default: false
     },
+    isTwoDimensionValue: {
+      type: Boolean,
+      default: true
+    },
     showLeafLabel: {
       type: Boolean,
       default: false
+    },
+    placeholder: {
+      type: String,
+      default: ''
     }
   });
   //定义labelKey/valueKey
@@ -180,11 +177,11 @@
   const showData = ref({});
   const activeClass = ref('floor-width-1');
   const activeList = ref([]);
+  const selectedNodes = ref([]); //选中完整项
   const searchText = ref('');
   const searchResult = ref([]); //搜索后的选项
   const zcascader = ref(null); // 用于获取点击输入框的dom
   const zdropdown = ref(null); // 用于获取下拉框的dom
-  const selectedNodes = ref([]); //选中的节点
   //选中项ID
   const selectedIds = computed({
     get() {
@@ -194,9 +191,12 @@
       emits('update:modelValue', val);
     }
   });
+  const isSearching = computed(() => {
+    return !(searchText.value.trim() === '');
+  });
+
   //当selectedLabels.length>showNum.value时,展示showNum个label,后面用+1, +2号代替
   const selectedLabels = computed(() => {
-    initSelected();
     let selectedLabelsList = selectedNodes.value.map((item) => item.showLabel);
     if (selectedNodes.value.length > props.showNum) {
       let newArr = selectedLabelsList.slice(0, props.showNum);
@@ -205,11 +205,7 @@
       return selectedLabelsList;
     }
   });
-
-  const isSearching = computed(() => {
-    return !(searchText.value.trim() === '');
-  });
-  //监听搜索条件的变化[不涉及选中]
+  //监听搜索条件的变化
   watch(searchText, (newVal) => {
     let tempResult = store.value.nodeList;
     tempResult = tempResult.filter((o) => o.isLeaf);
@@ -231,15 +227,22 @@
   });
   //点击清空,执行功能如下
   const handleCheckedClearChange = () => {
-    console.log('点击清空');
+    // 取消所有选中节点的选中状态
+    selectedNodes.value.forEach((node) => {
+      node.check(false); // 假设 check 方法可以接受一个布尔值来改变选中状态
+    });
+    // 清空选中节点的数组
+    selectedNodes.value = [];
+    // 发出事件更新父组件的 modelValue
+    emits('update:modelValue', []);
   };
   //执行全选操作
-  const handleCheckAllChange = () => {
-    console.log('点击全选');
+  const handleCheckAllChange = (val) => {
+    console.log('全选');
   };
   //执行反选操作[基于搜索内容的反选]
-  const handleCheckReverseChange = () => {
-    console.log('点击反选');
+  const handleCheckReverseChange = (val) => {
+    console.log('反选');
   };
   //关闭tags
   const handleCloseTags = (label) => {
@@ -257,7 +260,7 @@
     searchResult.value = [];
     searchText.value = '';
   };
-  //点击展示次级节点
+  //点击操作,接受子组件传递过来的值
   const handleClick = (node, levelIndex, level) => {
     if (maxLevellist.value[level - 1]) {
       maxLevellist.value[level - 1].rendered = true;
@@ -271,35 +274,49 @@
     showData.value[level] = node.childNodes;
     activeList.value = tempList;
   };
-  //点击选中节点
   const handleCheck = (node) => {
     node.check(node.checked);
-    updateSelect(store.value.selectedIds, false);
+    updateSelect(store.value.selectedIds, false, true);
   };
-  //选中以后,切换状态和获取选中项label[这里是修改的重点],data是选中项的id集合
-  const updateSelect = (data = [], needCheckNode = false) => {
-    let tempSelectedNodes = []; //存储临时选中项
-    let tempSelectedIds = []; //存储临时选中项ID
-    data.forEach((o) => {
-      let targetNode = store.value.nodesMap[o];
-      if (targetNode) {
-        tempSelectedIds.push(targetNode.value);
-        tempSelectedNodes.push(targetNode);
-        needCheckNode && targetNode.check(true);
+  //选中以后,切换状态和获取选中项label
+  const updateSelect = (data = [], needCheckNode = false, setValue = false) => {
+    let tempSelectedNodes = [];
+    let tempSelectedIds = [];
+
+    // 只遍历一次 ids，直接访问 nodesMap 获取节点
+    data.forEach((id) => {
+      const node = store.value.nodesMap[id];
+      if (node) {
+        if (needCheckNode) {
+          node.check(true); // 假设 check 方法能接受一个布尔值来更新节点的选中状态
+        }
+        tempSelectedNodes.push(node);
+        tempSelectedIds.push(node[valueKey.value]);
       }
     });
+
     selectedNodes.value = tempSelectedNodes;
-    selectedIds.value = tempSelectedIds;
+    if (!setValue) {
+      // 如果不是 set 操作，则需要更新外部 modelValue
+      emits('update:modelValue', tempSelectedIds);
+    }
+  };
+  //根据选中项的数量,展示不同的placeholder
+  const showPlaceholder = () => {
+    if (selectedLabels.value.length) {
+      return '';
+    }
+    return props.placeholder;
   };
 
+  //定义组件内方法
   //根据输入框的位置设置下拉框的位置
   const setDropdownPosition = () => {
     const { top, left } = zcascader.value.getBoundingClientRect();
     zdropdown.value.style.top = `${top + 34}px`;
     zdropdown.value.style.left = `${left}px`;
   };
-
-  //初始化数据结构
+  //初始化结构[不考虑select相关]
   const init = () => {
     store.value = new TreeStore({
       cascaderData: props.data,
@@ -321,12 +338,7 @@
       }
     );
     //初始化选中项
-    initSelected();
-  };
-  //初始化选中项
-  const initSelected = () => {
-    let startTime = new Date().getTime();
-    let tempResult = store.value.nodeList || [];
+    let tempResult = store.value.nodeList;
     tempResult = tempResult.filter((o) => o.isLeaf);
     selectedNodes.value = tempResult.filter((item) =>
       props.modelValue.includes(item[valueKey.value])
@@ -334,20 +346,13 @@
     selectedNodes.value.forEach((node) => {
       node.check(true);
     });
-    console.log(
-      '首先执行初始化,耗时:',
-      `${new Date().getTime() - startTime}ms`,
-      store.value
-    );
+    updateSelect(store.value.selectedIds);
   };
-  //mounted时执行
+
+  //mounted时初始化
   onMounted(() => {
-    //初始化
     init();
-    //设置下拉框的位置
     setDropdownPosition();
-    //打印mounted信息
-    console.log('然后进入mouted事件,组件加载完成');
   });
 </script>
 
@@ -419,28 +424,35 @@
       padding: 10px;
       border: 1px solid #dcdfe6;
       border-right: none;
+      :deep(.el-checkbox) {
+        margin-right: 9px !important;
+      }
       .zdropdown__checkbox {
         display: flex;
-        justify-content: space-between;
         align-items: center;
         box-sizing: border-box;
-        &__item {
+        div {
           display: flex;
-          cursor: pointer;
-          border-radius: 5px;
-          color: #999;
           align-items: center;
-          justify-content: flex-start;
+          line-height: 25px;
+          width: 80px;
+          // flex: 1;
+          cursor: pointer;
+          font-size: 12px;
+          color: #999;
           &:hover {
             color: #409eff;
           }
-        }
-        .icon__text {
-          font-size: 14px;
+          :deep(.el-icon) {
+            font-size: 12px;
+          }
+          .icon__text {
+            display: inline-block;
+          }
         }
       }
       .zdropdown__input {
-        margin-top: 20px;
+        margin-top: 10px;
       }
       .zdropdown__clear {
         cursor: pointer;
@@ -449,8 +461,8 @@
         display: inline-block;
         height: 24px;
         color: #4e5969;
-        line-height: 18px;
-        margin-left: 10px;
+        line-height: 26px;
+        // margin-left: 10px;
         &:hover {
           color: #50a6ff;
         }

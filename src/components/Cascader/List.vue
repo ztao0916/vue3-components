@@ -20,6 +20,7 @@
             <el-checkbox
               v-model="item.checked"
               :disabled="item.disabled"
+              :indeterminate="item.indeterminate"
               @update:model-value="handleCheck(item.checked, item)"
             />
           </span>

@@ -5,6 +5,7 @@ export default class Node {
   constructor(options) {
     this.id = nodeIdSeed++; //唯一的节点ID,通过种子变量生成
     this.cascaderData = null;
+    this.indeterminate = false; //不确定状态为false
     this.parent = null;
     this.isLeaf = true;
     this.checked = false;
@@ -83,6 +84,8 @@ export default class Node {
       return false;
     }
     this.checked = checked;
+    // 更新indeterminate状态
+    this.indeterminate = false; // 当前节点选中时，不确定状态为false
     this.updateSelectIds(checked, this.id);
     //有子节点,递归更新子节点的checked状态
     if (this.childNodes) {
@@ -96,12 +99,55 @@ export default class Node {
     }
   }
 
+  // 添加到 Node 类中
+  uncheckAll() {
+    // 从根节点开始递归取消选中所有节点
+    if (this.level === 0) {
+      // 清空存储在 store 中的 selectedIds 数组
+      this.store.selectedIds = [];
+      this.store.nodeList.forEach((node) => {
+        node.checked = false;
+        node.indeterminate = false;
+      });
+      // 递归取消选中所有节点
+      this.recursiveUncheck(this);
+    }
+  }
+
+  // 这是 uncheckAll 方法将调用的递归函数
+  recursiveUncheck(node) {
+    // 取消当前节点的选中状态
+    node.checked = false;
+    node.indeterminate = false;
+
+    // 如果当前节点有子节点，递归取消选中它们
+    if (node.childNodes && node.childNodes.length > 0) {
+      node.childNodes.forEach((child) => {
+        this.recursiveUncheck(child);
+      });
+    }
+  }
+
   //检查所有子节点的checked状态,并更新当前节点的状态
   checkedAll() {
-    if (this.childNodes) {
-      this.checked = this.childNodes.every((child) => child.checked);
-      this.updateSelectIds(this.checked, this.id);
-    }
+    // 新逻辑：设置不确定状态
+    let checkedChildren = 0;
+    let indeterminateChildren = 0;
+    this.childNodes.forEach((child) => {
+      if (child.checked) {
+        checkedChildren++;
+      } else if (child.indeterminate) {
+        indeterminateChildren++;
+      }
+    });
+
+    // 如果有一个子节点选中，则indeterminate为true，除非所有子节点都选中
+    this.indeterminate =
+      (checkedChildren > 0 && checkedChildren < this.childNodes.length) ||
+      indeterminateChildren > 0;
+    this.checked = checkedChildren === this.childNodes.length;
+
+    // 更新父节点
     if (this.parent) {
       this.parent.checkedAll();
     }
