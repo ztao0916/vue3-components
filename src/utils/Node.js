@@ -80,51 +80,43 @@ export default class Node {
 
   //根据传入的checked状态，更新当前节点及其子节点的checked状态
   check(checked) {
+    // 如果节点是禁用状态或状态没有改变，则不执行操作
     if (this.disabled) {
-      return false;
+      return;
     }
+
     this.checked = checked;
-    // 更新indeterminate状态
-    this.indeterminate = false; // 当前节点选中时，不确定状态为false
-    this.updateSelectIds(checked, this.id);
-    //有子节点,递归更新子节点的checked状态
-    if (this.childNodes) {
-      this.childNodes.forEach((child) => {
-        child.check(checked);
-      });
+    this.indeterminate = false; // 当前节点被选中或取消选中，不确定状态设为false
+
+    if (this.isLeaf) {
+      // 如果是叶子节点，则更新选中ID集
+      this.updateSelectIds(checked, this.id);
+    } else {
+      // 非叶子节点，递归遍历子节点修改状态
+      this.childNodes.forEach((child) => child.check(checked));
     }
-    //有父节点,父节点递归更新checked状态
+
+    // 更新父节点的选中状态
     if (this.parent) {
-      this.parent.checkedAll();
+      this.parent.updateCheckState();
     }
   }
 
-  // 添加到 Node 类中
-  uncheckAll() {
-    // 从根节点开始递归取消选中所有节点
-    if (this.level === 0) {
-      // 清空存储在 store 中的 selectedIds 数组
-      this.store.selectedIds = [];
-      this.store.nodeList.forEach((node) => {
-        node.checked = false;
-        node.indeterminate = false;
-      });
-      // 递归取消选中所有节点
-      this.recursiveUncheck(this);
-    }
-  }
+  // 更新节点的选中状态（新方法）
+  updateCheckState() {
+    const checkedChildren = this.childNodes.filter((child) => child.checked);
+    const partChecked =
+      checkedChildren.length > 0 &&
+      checkedChildren.length < this.childNodes.length;
+    const indeterminateChildren = this.childNodes.some(
+      (child) => child.indeterminate
+    );
 
-  // 这是 uncheckAll 方法将调用的递归函数
-  recursiveUncheck(node) {
-    // 取消当前节点的选中状态
-    node.checked = false;
-    node.indeterminate = false;
+    this.checked = checkedChildren.length === this.childNodes.length; // 所有子节点被选中
+    this.indeterminate = partChecked || indeterminateChildren; // 部分子节点被选中或某个子节点为indeterminate
 
-    // 如果当前节点有子节点，递归取消选中它们
-    if (node.childNodes && node.childNodes.length > 0) {
-      node.childNodes.forEach((child) => {
-        this.recursiveUncheck(child);
-      });
+    if (this.parent) {
+      this.parent.updateCheckState();
     }
   }
 
@@ -155,22 +147,18 @@ export default class Node {
 
   //用于更新存储在store中的selectedIds数组,该数组跟踪哪些节点的复选框被选中
   updateSelectIds(checked, id) {
-    let store = this.store;
+    const { selectedIds } = this.store;
     if (checked) {
       if (this.isLeaf) {
-        let tempList = [...store.selectedIds];
-        tempList.push(id);
-        tempList = Array.from(new Set(tempList));
-        store.selectedIds = tempList;
+        if (!selectedIds.includes(id)) {
+          selectedIds.push(id);
+        }
       }
     } else {
-      let tempList = [...store.selectedIds];
-      let index = tempList.findIndex((o) => o === id);
-      if (index >= 0) {
-        tempList.splice(index, 1);
+      const index = selectedIds.indexOf(id);
+      if (index > -1) {
+        selectedIds.splice(index, 1);
       }
-      tempList = Array.from(new Set(tempList));
-      store.selectedIds = tempList;
     }
   }
 }
