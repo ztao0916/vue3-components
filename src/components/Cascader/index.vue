@@ -87,7 +87,7 @@
           <div class="z-cascader-search">
             <RecycleScroller
               v-slot="{ item }"
-              :items="searchResult"
+              :items="filteredSearchResults"
               :item-size="30"
               :item-secondary-size="400"
               :grid-items="1"
@@ -111,8 +111,8 @@
 </template>
 
 <script setup name="ZCascader">
-  import { ref, computed, watch, onMounted } from 'vue';
-  import RenderList from './List.vue';
+  import { ref, computed, watch, onMounted, nextTick } from 'vue';
+  import RenderList from './list.vue';
   import TreeStore from '../../utils/Tree.js';
   //定义props,接收父组件传递过来的数据
   const props = defineProps({
@@ -179,17 +179,26 @@
   const activeList = ref([]);
   const selectedNodes = ref([]); //选中完整项
   const searchText = ref('');
-  const searchResult = ref([]); //搜索后的选项
   const zcascader = ref(null); // 用于获取点击输入框的dom
   const zdropdown = ref(null); // 用于获取下拉框的dom
-  //选中项ID
-  const selectedIds = computed({
-    get() {
-      return props.modelValue;
-    },
-    set(val) {
-      emits('update:modelValue', val);
+  //搜索内容变化
+  const filteredSearchResults = computed(() => {
+    if (!searchText.value) {
+      return [];
     }
+    let tempResult = store.value.nodeList;
+    tempResult = tempResult.filter((o) => o.isLeaf);
+    //多个用逗号隔开
+    let newValArr = searchText.value.split(',');
+    let filteredArray = newValArr.filter(
+      (item) => item !== null && item !== undefined && item !== ''
+    );
+    return tempResult.filter((item) => {
+      return filteredArray.some((val) => {
+        //模糊匹配
+        return item.showLabel.indexOf(val) > -1;
+      });
+    });
   });
   const isSearching = computed(() => {
     return !(searchText.value.trim() === '');
@@ -197,33 +206,21 @@
 
   //当selectedLabels.length>showNum.value时,展示showNum个label,后面用+1, +2号代替
   const selectedLabels = computed(() => {
-    let selectedLabelsList = selectedNodes.value.map((item) => item.showLabel);
-    if (selectedNodes.value.length > props.showNum) {
-      let newArr = selectedLabelsList.slice(0, props.showNum);
-      return [...newArr, `+${selectedLabelsList.length - props.showNum}`];
-    } else {
-      return selectedLabelsList;
+    // 获取映射后的所有选中节点的标签
+    const labels = selectedNodes.value.map((node) => node.showLabel);
+
+    // 如果选中的节点不超过showNum，直接返回这些标签
+    if (labels.length <= props.showNum) {
+      return labels;
     }
-  });
-  //监听搜索条件的变化
-  watch(searchText, (newVal) => {
-    let tempResult = store.value.nodeList;
-    tempResult = tempResult.filter((o) => o.isLeaf);
-    if (newVal) {
-      //多个用逗号隔开
-      let newValArr = newVal.split(',');
-      let filteredArray = newValArr.filter(
-        (item) => item !== null && item !== undefined && item !== ''
-      );
-      searchResult.value = tempResult.filter((item) => {
-        return filteredArray.some((val) => {
-          //模糊匹配
-          return item.showLabel.indexOf(val) > -1;
-        });
-      });
-    } else {
-      searchResult.value = [];
-    }
+
+    // 如果选中的节点超过showNum，则截取前showNum个并添加一个总数显示
+    const visibleLabels = labels.slice(0, props.showNum);
+    const overflowCount = labels.length - props.showNum;
+    const overflowLabel = `+${overflowCount}`;
+
+    // 返回前showNum个标签加上一个表示超出数量的标签
+    return [...visibleLabels, overflowLabel];
   });
   //点击清空,执行功能如下
   const handleCheckedClearChange = () => {
@@ -234,15 +231,46 @@
     // 清空选中节点的数组
     selectedNodes.value = [];
     // 发出事件更新父组件的 modelValue
-    emits('update:modelValue', []);
+    nextTick(() => {
+      emits('update:modelValue', []);
+    });
   };
   //执行全选操作
-  const handleCheckAllChange = (val) => {
-    console.log('全选');
+  const handleCheckAllChange = () => {
+    // 仅在搜索状态下执行全选
+    if (isSearching.value) {
+      // 假设 filteredSearchResults 是一个根据搜索过滤得到的结果数组
+      filteredSearchResults.value.forEach((result) => {
+        const node = store.value.nodesMap[result.id]; // 通过id从nodesMap中获取节点
+        if (node && !node.checked) {
+          // 如果节点未选中
+          node.check(true); // 选中节点
+        }
+      });
+
+      // 更新选中节点的状态
+      updateSelectedNodes();
+    } else {
+      console.log('非搜索状态，不执行全选操作');
+    }
   };
   //执行反选操作[基于搜索内容的反选]
-  const handleCheckReverseChange = (val) => {
-    console.log('反选');
+  const handleCheckReverseChange = () => {
+    if (isSearching.value) {
+      // 遍历当前搜索结果集
+      filteredSearchResults.value.forEach((result) => {
+        const node = store.value.nodesMap[result.id]; // 通过id从nodesMap中获取节点
+        if (node) {
+          // 切换节点的选中状态
+          node.check(!node.checked);
+        }
+      });
+
+      // 更新选中的节点
+      updateSelectedNodes();
+    } else {
+      console.log('没有搜索结果可反选');
+    }
   };
   //关闭tags
   const handleCloseTags = (label) => {
@@ -250,14 +278,13 @@
       (item) => item.showLabel == label
     )[0];
     labelNode.check(false);
-    updateSelect(store.value.selectedIds);
+    updateSelectedNodes();
   };
   const toggle = () => {
     isVisible.value = !isVisible.value;
   };
   const close = () => {
     isVisible.value = false;
-    searchResult.value = [];
     searchText.value = '';
   };
   //点击操作,接受子组件传递过来的值
@@ -274,32 +301,30 @@
     showData.value[level] = node.childNodes;
     activeList.value = tempList;
   };
-  const handleCheck = (node) => {
-    node.check(node.checked);
-    updateSelect(store.value.selectedIds, false, true);
-  };
-  //选中以后,切换状态和获取选中项label
-  const updateSelect = (data = [], needCheckNode = false, setValue = false) => {
-    let tempSelectedNodes = [];
-    let tempSelectedIds = [];
 
-    // 只遍历一次 ids，直接访问 nodesMap 获取节点
-    data.forEach((id) => {
-      const node = store.value.nodesMap[id];
-      if (node) {
-        if (needCheckNode) {
-          node.check(true); // 假设 check 方法能接受一个布尔值来更新节点的选中状态
-        }
-        tempSelectedNodes.push(node);
-        tempSelectedIds.push(node[valueKey.value]);
+  const handleCheck = (node) => {
+    node.check(node.checked); // Toggle the current check state of the node.
+    updateSelectedNodes(); // Synchronize the selectedNodes with the current selection.
+  };
+
+  // 更新全/反选后的节点状态
+  const updateSelectedNodes = () => {
+    // 清空当前选中的节点
+    selectedNodes.value = [];
+
+    // 更新 selectedNodes 数组
+    Object.values(store.value.nodesMap).forEach((node) => {
+      if (node.checked && node.isLeaf) {
+        selectedNodes.value.push(node);
       }
     });
-
-    selectedNodes.value = tempSelectedNodes;
-    if (!setValue) {
-      // 如果不是 set 操作，则需要更新外部 modelValue
-      emits('update:modelValue', tempSelectedIds);
-    }
+    nextTick(() => {
+      // 更新 emit 出去的 modelValue 数据
+      emits(
+        'update:modelValue',
+        selectedNodes.value.map((node) => node[valueKey.value])
+      );
+    });
   };
   //根据选中项的数量,展示不同的placeholder
   const showPlaceholder = () => {
@@ -346,7 +371,7 @@
     selectedNodes.value.forEach((node) => {
       node.check(true);
     });
-    updateSelect(store.value.selectedIds);
+    updateSelectedNodes();
   };
 
   //mounted时初始化
@@ -354,6 +379,33 @@
     init();
     setDropdownPosition();
   });
+
+  watch(
+    () => props.modelValue,
+    (newVal) => {
+      if (Object.keys(store.value).length) {
+        let tempList = store.value.nodeList.filter(
+          (node) => newVal.includes(node[valueKey.value]) && node.isLeaf
+        );
+
+        // Uncheck previous nodes that are not in the new model values
+        selectedNodes.value.forEach((node) => {
+          if (!newVal.includes(node[valueKey.value])) {
+            node.check(false);
+          }
+        });
+
+        // Update the array of selected nodes
+        selectedNodes.value = tempList;
+
+        // Check the new nodes
+        selectedNodes.value.forEach((node) => {
+          node.check(true);
+        });
+      }
+    },
+    { immediate: true }
+  );
 </script>
 
 <style lang="scss" scoped>

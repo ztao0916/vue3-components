@@ -59,8 +59,6 @@ export default class Node {
       //更新store.nodesMap和store.nodeList,用于快速地获取节点实例和管理节点列表
       this.store.nodesMap[this.id] = this;
       this.store.nodeList.push(this);
-      // eslint-disable-next-line no-self-assign
-      this[store.valueKey] = this[store.valueKey];
     }
     children.forEach((child) => {
       this.insertChild(child);

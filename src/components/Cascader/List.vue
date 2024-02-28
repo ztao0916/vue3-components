@@ -12,23 +12,23 @@
       <div
         :key="item.id"
         class="li-style"
-        :class="{ 'active-li': activeList[level - 1] === item.id }"
-        @click="handleClick(item, nodeIndex, level)"
+        :class="{ 'active-li': isActiveListItem(item.id) }"
+        @click="handleClick(item, nodeIndex)"
       >
         <p>
-          <span v-show="!onlyLast || (onlyLast && item.isLeaf)" @click.stop>
+          <span v-show="shouldShowCheckbox(item)" @click.stop>
             <el-checkbox
               v-model="item.checked"
               :disabled="item.disabled"
               :indeterminate="item.indeterminate"
-              @update:model-value="handleCheck(item.checked, item)"
+              @change="handleCheckChange($event, item)"
             />
           </span>
           <span class="li-label" :title="item[labelKey]">{{
             item[labelKey]
           }}</span>
         </p>
-        <el-icon v-if="item.childNodes && item.childNodes.length > 0">
+        <el-icon v-if="hasChildNodes(item)">
           <ArrowRight />
         </el-icon>
       </div>
@@ -62,13 +62,23 @@
   });
   //定义emit,传递给父组件对应的事件
   const emit = defineEmits(['handle-click', 'handle-check']);
+
+  const isActiveListItem = (itemId) =>
+    props.activeList[props.level - 1] === itemId;
+
+  const shouldShowCheckbox = (item) =>
+    !props.onlyLast || (props.onlyLast && item.isLeaf);
+
+  const hasChildNodes = (item) => item.childNodes && item.childNodes.length > 0;
+
   //定义data,子组件内部使用的数据
-  const handleClick = (node, levelIndex, level) => {
-    emit('handle-click', node, levelIndex, level);
+  const handleCheckChange = (checked, item) => {
+    item.checked = checked;
+    emit('handle-check', item);
   };
-  const handleCheck = (val, node) => {
-    node.checked = val;
-    emit('handle-check', node);
+  // 当handleClick方法不依赖level属性时,我们可以移除它的参数。
+  const handleClick = (item, levelIndex) => {
+    emit('handle-click', item, levelIndex, props.level);
   };
 </script>
 

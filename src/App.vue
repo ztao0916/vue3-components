@@ -9,12 +9,16 @@
   const clearHandle = () => {
     selectedIds.value = [];
   };
+  const getHandle = () => {
+    console.log(selectedIds.value);
+  };
 </script>
 
 <template>
   <div class="app-main">
     <Cascader :data="data" v-model="selectedIds" />
     <el-button @click="clearHandle">清空选中</el-button>
+    <el-button @click="getHandle">获取选中</el-button>
   </div>
 </template>
 
