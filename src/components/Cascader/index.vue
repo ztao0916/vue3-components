@@ -19,7 +19,11 @@
             </template>
           </div>
         </div>
-        <el-input readonly :placeholder="showPlaceholder()">
+        <el-input
+          :placeholder="showPlaceholder()"
+          class="z_cascader__input"
+          v-model="searchText"
+        >
           <template #suffix>
             <el-icon v-if="isVisible"><ArrowUp /></el-icon>
             <el-icon v-else><ArrowDown /></el-icon>
@@ -30,25 +34,6 @@
     <!-- 下拉部分 -->
     <teleport to="body">
       <div v-show="isVisible" ref="zdropdown" class="zdropdown" @click.stop>
-        <div class="zdropdown__search">
-          <div class="zdropdown__checkbox">
-            <div @click="handleCheckAllChange">
-              <el-icon><Finished /></el-icon>
-              <span class="icon__text">全选</span>
-            </div>
-            <div @click="handleCheckReverseChange">
-              <el-icon><Switch /></el-icon>
-              <span class="icon__text">反选</span>
-            </div>
-            <div @click="handleCheckedClearChange">
-              <el-icon><Close /></el-icon>
-              <span class="icon__text">清空</span>
-            </div>
-          </div>
-          <div class="zdropdown__input">
-            <el-input v-model="searchText" placeholder="请输入" />
-          </div>
-        </div>
         <template v-if="!isSearching">
           <div class="z-cascader-panel">
             <div class="floor-item floor-position-left-1">
@@ -84,6 +69,22 @@
           </div>
         </template>
         <template v-if="isSearching">
+          <div class="zdropdown__search">
+            <div class="zdropdown__checkbox">
+              <div @click="handleCheckAllChange">
+                <el-icon><Finished /></el-icon>
+                <span class="icon__text">全选</span>
+              </div>
+              <div @click="handleCheckReverseChange">
+                <el-icon><Switch /></el-icon>
+                <span class="icon__text">反选</span>
+              </div>
+              <div @click="handleCheckedClearChange">
+                <el-icon><Close /></el-icon>
+                <span class="icon__text">清空</span>
+              </div>
+            </div>
+          </div>
           <div class="z-cascader-search">
             <RecycleScroller
               v-slot="{ item }"
@@ -215,12 +216,12 @@
     }
 
     // 如果选中的节点超过showNum，则截取前showNum个并添加一个总数显示
-    const visibleLabels = labels.slice(0, props.showNum);
-    const overflowCount = labels.length - props.showNum;
-    const overflowLabel = `+${overflowCount}`;
-
+    // const visibleLabels = labels.slice(0, props.showNum);
+    // const overflowCount = labels.length - props.showNum;
+    // const overflowLabel = `+${overflowCount}`;
     // 返回前showNum个标签加上一个表示超出数量的标签
-    return [...visibleLabels, overflowLabel];
+    // return [...visibleLabels, overflowLabel];
+    return [`${labels.length}项`];
   });
   //点击清空,执行功能如下
   const handleCheckedClearChange = () => {
@@ -431,9 +432,11 @@
       box-sizing: border-box;
       vertical-align: middle;
       padding: 1px;
+      box-shadow: rgb(220, 223, 230) 0px 0px 0px 1px inset;
+      border-radius: 4px;
       .z-cascader__tags {
         cursor: pointer;
-        width: 100%;
+        width: 50%;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -445,10 +448,23 @@
         &__item {
           margin: 0 1px;
           :deep(.el-tag__content) {
-            max-width: 40px;
+            max-width: 60px;
             width: fit-content;
             overflow: hidden;
             text-overflow: ellipsis;
+          }
+        }
+      }
+      .z_cascader__input {
+        padding-left: 50%;
+        :deep(.el-input__wrapper) {
+          box-shadow: none !important;
+        }
+        :deep(.el-input__inner) {
+          border: none; /* 移除边框 */
+          box-shadow: none !important; /* 移除聚焦时的阴影效果 */
+          &:focus {
+            outline: none !important; /* 移除蓝色聚焦轮廓 */
           }
         }
       }
@@ -463,18 +479,17 @@
     }
   }
   .zdropdown {
-    // width: fit-content;
     position: absolute;
     display: flex;
+    flex-direction: column;
     background-color: #fff;
     z-index: 20231115;
     box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
       0px 8px 20px rgba(0, 0, 0, 0.08);
     .zdropdown__search {
-      width: 180px;
+      width: fit-content;
       box-sizing: border-box;
-      padding: 10px;
-      border: 1px solid #dcdfe6;
+      padding: 3px 10px;
       border-right: none;
       :deep(.el-checkbox) {
         margin-right: 9px !important;
@@ -502,9 +517,6 @@
             display: inline-block;
           }
         }
-      }
-      .zdropdown__input {
-        margin-top: 10px;
       }
       .zdropdown__clear {
         cursor: pointer;
@@ -541,7 +553,7 @@
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: hidden;
-    border: 1px solid #dcdfe6;
+    border-top: 1px solid #dcdfe6;
     color: #606266;
     .recycle-scroller {
       height: 204px;
