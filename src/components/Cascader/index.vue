@@ -274,12 +274,19 @@
     }
   };
   //关闭tags
-  const handleCloseTags = (label) => {
-    const labelNode = selectedNodes.value.filter(
-      (item) => item.showLabel == label
-    )[0];
-    labelNode.check(false);
-    updateSelectedNodes();
+  const handleCloseTags = () => {
+    // 遍历所有选中节点，并取消它们的选中状态
+    selectedNodes.value.forEach((node) => {
+      node.check(false); // 假设 check 方法可以接受一个布尔值来改变选中状态
+    });
+
+    // 清空选中节点的数组
+    selectedNodes.value = [];
+
+    // 同步更新父组件的 modelValue。这将确保父组件也知道所有标签都被关闭了。
+    nextTick(() => {
+      emits('update:modelValue', []);
+    });
   };
   const toggle = () => {
     isVisible.value = !isVisible.value;
@@ -338,6 +345,7 @@
   //定义组件内方法
   //根据输入框的位置设置下拉框的位置
   const setDropdownPosition = () => {
+    console.log(zcascader.value);
     const { top, left } = zcascader.value.getBoundingClientRect();
     zdropdown.value.style.top = `${top + 34}px`;
     zdropdown.value.style.left = `${left}px`;
@@ -376,9 +384,23 @@
   };
 
   //mounted时初始化
-  onMounted(() => {
-    init();
-    setDropdownPosition();
+  watch(
+    () => props.data,
+    (newData) => {
+      // Wait for the data to be populated
+      if (newData && newData.length > 0) {
+        // Now that we have data, initialize it
+        init();
+      }
+    },
+    { immediate: true } // This ensures the watcher is run immediately on component mount
+  );
+
+  // 监听下拉框的显示隐藏
+  watch(isVisible, (newVal) => {
+    if (newVal) {
+      setDropdownPosition();
+    }
   });
 
   watch(
@@ -436,10 +458,8 @@
       border-radius: 4px;
       .z-cascader__tags {
         cursor: pointer;
-        width: 50%;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
+        flex: none;
+        width: auto;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
@@ -456,7 +476,8 @@
         }
       }
       .z_cascader__input {
-        padding-left: 50%;
+        flex: 1;
+        // padding-left: 50%;
         :deep(.el-input__wrapper) {
           box-shadow: none !important;
         }
