@@ -13,7 +13,7 @@
               <el-tag type="info">{{ item }}</el-tag>
             </template>
             <template v-else>
-              <el-tag type="info" closable @close="handleCloseTags(item)">
+              <el-tag type="info" closable @close="handleCheckedClearChange">
                 {{ item }}
               </el-tag>
             </template>
@@ -226,13 +226,15 @@
   //点击清空,执行功能如下
   const handleCheckedClearChange = () => {
     // 取消所有选中节点的选中状态
-    selectedNodes.value.forEach((node) => {
-      node.check(false); // 假设 check 方法可以接受一个布尔值来改变选中状态
-    });
-    // 清空选中节点的数组
-    selectedNodes.value = [];
+    const newSelectedNodes = [...selectedNodes.value];
+    while (newSelectedNodes.length > 0) {
+      const node = newSelectedNodes.pop();
+      node.check(false);
+    }
     // 发出事件更新父组件的 modelValue
     nextTick(() => {
+      // 清空选中节点的数组
+      selectedNodes.value = [];
       emits('update:modelValue', []);
     });
   };
@@ -240,14 +242,17 @@
   const handleCheckAllChange = () => {
     // 仅在搜索状态下执行全选
     if (isSearching.value) {
-      // 假设 filteredSearchResults 是一个根据搜索过滤得到的结果数组
-      filteredSearchResults.value.forEach((result) => {
-        const node = store.value.nodesMap[result.id]; // 通过id从nodesMap中获取节点
+      let index = 0;
+      const results = filteredSearchResults.value;
+      while (index < results.length) {
+        const result = results[index];
+        const node = store.value.nodesMap[result.id];
         if (node && !node.checked) {
           // 如果节点未选中
           node.check(true); // 选中节点
         }
-      });
+        index++;
+      }
 
       // 更新选中节点的状态
       updateSelectedNodes();
@@ -259,34 +264,22 @@
   const handleCheckReverseChange = () => {
     if (isSearching.value) {
       // 遍历当前搜索结果集
-      filteredSearchResults.value.forEach((result) => {
-        const node = store.value.nodesMap[result.id]; // 通过id从nodesMap中获取节点
+      let index = 0;
+      const results = filteredSearchResults.value;
+      while (index < results.length) {
+        const result = results[index];
+        const node = store.value.nodesMap[result.id];
         if (node) {
-          // 切换节点的选中状态
           node.check(!node.checked);
         }
-      });
+        index++;
+      }
 
       // 更新选中的节点
       updateSelectedNodes();
     } else {
       console.log('没有搜索结果可反选');
     }
-  };
-  //关闭tags
-  const handleCloseTags = () => {
-    // 遍历所有选中节点，并取消它们的选中状态
-    selectedNodes.value.forEach((node) => {
-      node.check(false); // 假设 check 方法可以接受一个布尔值来改变选中状态
-    });
-
-    // 清空选中节点的数组
-    selectedNodes.value = [];
-
-    // 同步更新父组件的 modelValue。这将确保父组件也知道所有标签都被关闭了。
-    nextTick(() => {
-      emits('update:modelValue', []);
-    });
   };
   const toggle = () => {
     isVisible.value = !isVisible.value;
@@ -321,11 +314,15 @@
     selectedNodes.value = [];
 
     // 更新 selectedNodes 数组
-    Object.values(store.value.nodesMap).forEach((node) => {
+    const newSelectedNodes = [];
+    const storeNodesMap = [...Object.values(store.value.nodesMap)];
+    while (storeNodesMap.length > 0) {
+      const node = storeNodesMap.pop();
       if (node.checked && node.isLeaf) {
-        selectedNodes.value.push(node);
+        newSelectedNodes.push(node);
       }
-    });
+    }
+    selectedNodes.value = [...newSelectedNodes];
     nextTick(() => {
       // 更新 emit 出去的 modelValue 数据
       emits(
@@ -377,9 +374,11 @@
     selectedNodes.value = tempResult.filter((item) =>
       props.modelValue.includes(item[valueKey.value])
     );
-    selectedNodes.value.forEach((node) => {
+    const newSelectedNodes = [...selectedNodes.value];
+    while (newSelectedNodes.length > 0) {
+      const node = newSelectedNodes.pop();
       node.check(true);
-    });
+    }
     updateSelectedNodes();
   };
 
@@ -412,19 +411,23 @@
         );
 
         // Uncheck previous nodes that are not in the new model values
-        selectedNodes.value.forEach((node) => {
+        const newSelectedNodes = [...selectedNodes.value];
+        while (newSelectedNodes.length > 0) {
+          const node = newSelectedNodes.pop();
           if (!newVal.includes(node[valueKey.value])) {
             node.check(false);
           }
-        });
+        }
 
         // Update the array of selected nodes
         selectedNodes.value = tempList;
 
         // Check the new nodes
-        selectedNodes.value.forEach((node) => {
+        const newSelectedNodes2 = [...selectedNodes.value];
+        while (newSelectedNodes2.length > 0) {
+          const node = newSelectedNodes2.pop();
           node.check(true);
-        });
+        }
       }
     },
     { immediate: true }

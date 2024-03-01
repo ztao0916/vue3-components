@@ -44,6 +44,7 @@ export default class Node {
 
   //设置节点的数据
   setData(data) {
+    let that = this;
     let store = this.store; //存储级联选择器相关配置和状态的对象
     this.cascaderData = data; //设置节点的数据
     this.childNodes = []; //初始化childNodes为空数组，用于存储子节点
@@ -60,9 +61,12 @@ export default class Node {
       this.store.nodesMap[this.id] = this;
       this.store.nodeList.push(this);
     }
-    children.forEach((child) => {
-      this.insertChild(child);
-    });
+    let index = 0;
+    while (index < children.length) {
+      const child = children[index];
+      that.insertChild(child);
+      index++;
+    }
   }
 
   //将child对象与当前节点的一些属性合并,并创建一个新的Node实例.将新实例添加到childNodes数组中
@@ -78,6 +82,7 @@ export default class Node {
 
   //根据传入的checked状态，更新当前节点及其子节点的checked状态
   check(checked) {
+    let that = this;
     // 如果节点是禁用状态或状态没有改变，则不执行操作
     if (this.disabled) {
       return;
@@ -91,7 +96,12 @@ export default class Node {
       this.updateSelectIds(checked, this.id);
     } else {
       // 非叶子节点，递归遍历子节点修改状态
-      this.childNodes.forEach((child) => child.check(checked));
+      let index = 0;
+      while (index < that.childNodes.length) {
+        const child = that.childNodes[index];
+        child.check(checked);
+        index++;
+      }
     }
 
     // 更新父节点的选中状态
@@ -123,13 +133,17 @@ export default class Node {
     // 新逻辑：设置不确定状态
     let checkedChildren = 0;
     let indeterminateChildren = 0;
-    this.childNodes.forEach((child) => {
+    let that = this;
+    let index = 0;
+    while (index < that.childNodes.length) {
+      const child = that.childNodes[index];
       if (child.checked) {
         checkedChildren++;
       } else if (child.indeterminate) {
         indeterminateChildren++;
       }
-    });
+      index++;
+    }
 
     // 如果有一个子节点选中，则indeterminate为true，除非所有子节点都选中
     this.indeterminate =
