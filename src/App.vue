@@ -1,7 +1,10 @@
 <script setup>
   import { ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
+  import imageEditor from '@/components/ImageEditor/index.vue';
   import dataJson2 from '@/utils/data2.js';
+  import Ruler from '@/components/Ruler/index.vue';
+  import base64Src from './utils/base64.js';
   import dataJson from '@/utils/data.js';
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
@@ -12,22 +15,42 @@
   const getHandle = () => {
     console.log(selectedIds.value);
   };
+  const showRuler = ref(false);
+  const imgSrc = ref(base64Src);
 </script>
 
 <template>
   <div class="app-main">
-    <Cascader :data="data" v-model="selectedIds" />
-    <el-button @click="clearHandle">清空选中</el-button>
-    <el-button @click="getHandle">获取选中</el-button>
+    <div class="main-item">
+      <Cascader :data="data" v-model="selectedIds" />
+      <el-button @click="clearHandle">清空选中</el-button>
+      <el-button @click="getHandle">获取选中</el-button>
+    </div>
+    <!-- <div class="main-item">
+      <imageEditor></imageEditor>
+    </div> -->
+    <div class="main-item">
+      <img :src="imgSrc" width="150" height="150" />
+      <el-button @click="showRuler = !showRuler">标尺功能</el-button>
+      <Ruler v-if="showRuler" v-model="showRuler" :src="imgSrc" />
+    </div>
   </div>
 </template>
 
 <style scoped>
   .app-main {
     width: 100%;
-    height: 500px;
+    /* height: 500px; */
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    .main-item {
+      display: flex;
+      margin-bottom: 20px;
+      flex-direction: row;
+      justify-content: flex-start;
+      min-width: 200px;
+    }
   }
 </style>
