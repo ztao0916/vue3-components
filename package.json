@@ -11,9 +11,9 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "canvas": "^2.11.2",
-    "element-plus": "^2.4.2",
+    "element-plus": "^2.6.3",
     "fabric": "^5.3.0",
-    "mt-image-editor-sdk": "3.1.0",
+    "mt-image-editor-sdk": "3.2.0",
     "normalize.css": "^8.0.1",
     "sass": "^1.69.5",
     "vue": "^3.3.4",

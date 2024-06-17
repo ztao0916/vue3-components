@@ -1,7 +1,7 @@
 <script setup>
   import { ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
-  import imageEditor from '@/components/ImageEditor/index.vue';
+  // import imageEditor from '@/components/ImageEditor/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import Ruler from '@/components/Ruler/index.vue';
   import base64Src from './utils/base64.js';
@@ -16,7 +16,10 @@
     console.log(selectedIds.value);
   };
   const showRuler = ref(false);
-  const imgSrc = ref(base64Src);
+  // const imgSrc = ref(base64Src);
+  const imgSrc = ref(
+    'https://wxalbum-10001658.image.myqcloud.com/wxalbum/53502/20240609013024/88428bc9471525598af2acd4a0cf40e0.jpg'
+  );
 </script>
 
 <template>
