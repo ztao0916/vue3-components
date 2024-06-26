@@ -1,7 +1,7 @@
 <script setup>
   import { ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
-  // import imageEditor from '@/components/ImageEditor/index.vue';
+  import imageEditor from '@/components/ImageEditor/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import Ruler from '@/components/Ruler/index.vue';
   import base64Src from './utils/base64.js';

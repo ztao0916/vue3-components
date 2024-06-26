@@ -48,15 +48,15 @@
 
   //标尺表单
   const rulesForm = ref({
-    text: '',
+    text: '', //txt文本
     txtColor: '#000',
-    ruleColor: '#000',
-    txtValue: 18,
-    rulerValue: 2,
-    cm: '',
-    txtRadio: '1',
-    txtPosition: '1',
-    checkedInch: true
+    ruleColor: '#000', //标尺颜色
+    txtValue: 18, //文本大小
+    rulerValue: 2, //标尺粗细
+    cm: '', //展示厘米
+    txtRadio: '0', //长度?文本?
+    txtPosition: '1', //文本位置: 上?下?
+    checkedInch: true //是否展示英寸
   });
 
   const inch = ref('--');
@@ -76,20 +76,24 @@
   //#region fabric逻辑
   const canvasDom = ref(null);
   let canvas = null;
-  //添加组
-  const addGroup = (txt, style) => {
-    // ┝━━━━━━━━━━━━┥  ├────────┤
-    const txt1 = new fabric.IText('├──────┤', {
-      textAlign: 'center',
-      originX: 'center',
-      originY: 'center',
-      top: style.txt1.top,
-      // angle: 90,
-      fill: style.txt1.fill,
-      stroke: style.txt1.fill,
-      strokeWidth: style.txt1.strokeWidth / 10,
-      fontSize: 14
-    });
+
+  //新增fabric标尺
+  function Add(txt, style) {
+    // ┝━━━━━━━━━━━━┥  ├────────┤ ━ ─
+    const txt1 = new fabric.IText(
+      '▇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━▇',
+      {
+        originX: 'center',
+        originY: 'center',
+        top: style.txt1.top,
+        // angle: 90,
+        fill: style.txt1.fill,
+        scaleX: 0.2,
+        stroke: style.txt1.fill,
+        strokeWidth: style.txt1.strokeWidth / 5,
+        fontSize: 14
+      }
+    );
 
     const txt2 = new fabric.IText(txt, {
       textAlign: 'center',
@@ -101,14 +105,15 @@
       fontSize: style.txt2.fontSize
     });
 
-    const group = new fabric.Group([txt1, txt2], {
-      width: style.width,
+    var group = new fabric.Group([txt1, txt2], {
+      // objectCaching: false, // 不缓存！！！
+      // width: style.width,
       left: style.left,
       top: style.top
     });
     canvas.add(group);
     // 将线段存储到数组中
-    lineArray.push(group);
+    // lineArray.push(group);
     group.setControlVisible('tl', false); // 左上角
     group.setControlVisible('bl', false); // 左下角
     group.setControlVisible('tr', false); // 右上角
@@ -118,36 +123,48 @@
     canvas.setActiveObject(group);
     // 放大缩小文字大小不变
     function updateControlsScaling(obj) {
-      const txt2 = obj.target.item(1),
+      var txt2 = obj.target.item(1),
+        // txt1 = obj.target.item(0),
         group = obj.target;
       txt2.set('scaleX', 1 / group.scaleX);
       canvas.renderAll();
     }
     canvas.on({
+      // 'object:moving': updateControls,
       'object:scaling': updateControlsScaling
+      // 'object:resizing': updateControls,
+      // 'object:rotating': updateControls,
+      // 'object:skewing': updateControls
     });
-  };
+  }
+  function deleteObject(eventData, transform) {
+    var target = transform;
+    var canvas = target.canvas;
+    canvas.remove(target);
+    canvas.requestRenderAll();
+  }
+  //根据宽度值txt获取DOM的宽度,返回宽度
+  function _getWidth(txt) {
+    let fontSize = layero.find('.slider-range-collect1-txt').text() * 1;
+    layero.find('[name=txtWidth]').text(txt);
+    layero.find('[name=txtWidth]').css('fontSize', fontSize + 'px');
+    return layero.find('[name=txtWidth]').width();
+  }
 
   const init = (imgSize) => {
-    nextTick(() => {
-      //⚠️: fabric的canvas变量不能设置成响应式
-      canvas = new fabric.Canvas(canvasDom.value, {
-        width: imgSize.width,
-        height: imgSize.height,
-        backgroundColor: '#eee',
-        uniformScaling: true
-        // selection: false
-      });
-      fabric.Object.prototype.transparentCorners = false;
-      //把图片加载到画布上,设为背景图
-      canvas.setBackgroundImage(props.src, canvas.renderAll.bind(canvas), {
-        scaleX: canvas.width / imgSize.width,
-        scaleY: canvas.height / imgSize.height
-      });
-      fabric.Object.prototype.transparentCorners = false;
-      fabric.Object.prototype.cornerColor = '#ffffff';
-      fabric.Object.prototype.cornerStrokeColor = '#000000'; // 定位圆点边框
-      fabric.Object.prototype.cornerStyle = 'circle';
+    //⚠️: fabric的canvas变量不能设置成响应式
+    canvas = new fabric.Canvas(canvasDom.value, {
+      width: imgSize.width,
+      height: imgSize.height,
+      backgroundColor: '#eee',
+      uniformScaling: true
+      // selection: false
+    });
+    fabric.Object.prototype.transparentCorners = false;
+    //把图片加载到画布上,设为背景图
+    canvas.setBackgroundImage(props.src, canvas.renderAll.bind(canvas), {
+      scaleX: canvas.width / imgSize.width,
+      scaleY: canvas.height / imgSize.height
     });
   };
 
@@ -158,7 +175,16 @@
       imgSize.value = res;
       init(imgSize.value);
     });
-    //监听双击事件
+    // 键盘删除选中项
+    document.addEventListener('keydown', function (event) {
+      if (
+        (event.key == 'Backspace' || event.key == 'Delete') &&
+        !event.target.classList.contains('layui-input')
+      ) {
+        deleteObject('', canvas._activeObject);
+      }
+    });
+    // 鼠标双击添加
     document.addEventListener('dblclick', function (event) {
       if (event.button == 0) {
         // 鼠标左键
@@ -166,7 +192,84 @@
           event.target.style.cursor === 'default' &&
           event.target.classList.contains('upper-canvas')
         ) {
-          console.log('点击了canvas区域');
+          let txt = null;
+          // 选择为长度时，是否展示英寸
+          //表示此时选择了长度
+          if (rulesForm.value.txtRadio == 0) {
+            txt = rulesForm.value.cm;
+            // 选择长度时,是否展示英寸
+            if (rulesForm.value.checkedInch) {
+              // 勾选展示
+              let n = (1 * txt * 0.3937007874).toFixed(2);
+              txt = `${txt}cm/${n}inch`;
+            } else {
+              txt = `${txt}cm`;
+            }
+          } else if (rulesForm.value.txtRadio == 1) {
+            txt = rulesForm.value.text;
+          }
+          let collectRulerImageRadio = rulesForm.value.txtPosition, // 文字显示位置
+            fontSize = rulesForm.value.txtValue; // 文字大小
+          let style = {
+            left: event.layerX,
+            top: event.layerY,
+            txt1: {
+              fill: rulesForm.value.ruleColor, //标尺颜色
+              //标尺粗细
+              strokeWidth: Number(rulesForm.value.rulerValue) / 20,
+              top: collectRulerImageRadio == 0 ? 0 : 30
+            },
+            txt2: {
+              fill: rulesForm.value.txtColor, //文本颜色
+              fontSize,
+              top: collectRulerImageRadio == 0 ? 30 : 0
+            }
+          };
+          Add(txt, style);
+        } else if (
+          event.target.style.cursor === 'move' &&
+          event.target.classList.contains('upper-canvas')
+        ) {
+          let items = canvas._activeObject.getObjects();
+          //展示厘米/英寸
+          if (items[1].text.includes('cm/') && items[1].text.includes('inch')) {
+            // 长度
+            // 样式显示&隐藏
+            rulesForm.value.txtRadio = '0';
+            rulesForm.value.checkedInch = true;
+            // 回显赋值
+            rulesForm.value.cm = items[1].text?.split('cm/')[0];
+          } else if (items[1].text.includes('cm')) {
+            //只展示厘米
+            // 长度，不展示英寸
+            // 样式显示&隐藏
+            rulesForm.value.txtRadio = '0';
+            rulesForm.value.checkedInch = false;
+            // 回显赋值
+            rulesForm.value.cm = items[1].text?.split('cm/')[0];
+          } else {
+            // 文本
+            rulesForm.value.txtRadio = '1';
+            rulesForm.value.checkedInch = false;
+            // 回显赋值
+            rulesForm.value.text = items[1].text;
+            rulesForm.value.cm = '';
+          }
+          // 文本颜色
+          rulesForm.value.txtColor = items[1].fill;
+          // 标尺颜色
+          rulesForm.value.ruleColor = items[0].fill;
+          // 字体大小
+          rulesForm.value.txtValue = items[1].fontSize;
+          // 标尺粗细
+          rulesForm.value.rulerValue = items[0].strokeWidth / 5;
+          // 文本位置
+          if (items[0].top > items[1].top) {
+            // 标尺下方
+            rulesForm.value.txtPosition = '1';
+          } else {
+            rulesForm.value.txtPosition = '2';
+          }
         }
       }
     });
@@ -195,11 +298,11 @@
             >
               <el-form-item label="标尺文本">
                 <el-radio-group v-model="rulesForm.txtRadio">
-                  <el-radio value="1">长度</el-radio>
-                  <el-radio value="2">文本</el-radio>
+                  <el-radio value="0">长度</el-radio>
+                  <el-radio value="1">文本</el-radio>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="&nbsp;" v-if="rulesForm.txtRadio === '1'">
+              <el-form-item label="&nbsp;" v-if="rulesForm.txtRadio === '0'">
                 <div>
                   <div class="flex">
                     <el-input v-model="rulesForm.cm" type="number" />
@@ -232,8 +335,8 @@
               </el-form-item>
               <el-form-item label="文本位置">
                 <el-radio-group v-model="rulesForm.txtPosition">
-                  <el-radio value="1">上方</el-radio>
-                  <el-radio value="2">下方</el-radio>
+                  <el-radio value="1">下方</el-radio>
+                  <el-radio value="2">上方</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-form>
