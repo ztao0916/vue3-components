@@ -56,7 +56,7 @@
     txtColor: '#000',
     ruleColor: '#000', //标尺颜色
     txtValue: 18, //文本大小
-    rulerValue: 2, //标尺粗细
+    ruleValue: 2, //标尺粗细
     cm: '', //展示厘米
     txtRadio: '0', //长度?文本?
     txtPosition: '0', //文本位置: 上?下?
@@ -139,13 +139,62 @@
       }
     }
   };
+  //文本颜色变化更新到canvas上
+  const watchTxtColor = () => {
+    let txtColor = rulesForm.value.txtColor;
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      let items = group.getObjects();
+      items[1].set('fill', txtColor);
+      group.set('objects', items);
+      canvas.renderAll();
+    }
+  };
+  //文本大小变化更新到canvas上
+  const watchTxtSize = () => {
+    let txtValue = rulesForm.value.txtValue;
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      let items = group.getObjects();
+      items[1].set('fontSize', txtValue);
+      group.set('objects', items);
+      canvas.renderAll();
+    }
+  };
+
+  //标尺颜色变化更新到canvas上
+  const watchRuleColor = () => {
+    let ruleColor = rulesForm.value.ruleColor;
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      let items = group.getObjects();
+      items[0].set('stroke', ruleColor);
+      items[0].set('fill', ruleColor);
+      group.set('objects', items);
+      canvas.renderAll();
+    }
+  };
+  //标尺粗细变化更新到canvas上
+  const watchRuleValue = () => {
+    let ruleValue = rulesForm.value.ruleValue;
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      let items = group.getObjects();
+      items[0].set('strokeWidth', ruleValue / 5);
+      group.set('objects', items);
+      canvas.renderAll();
+    }
+  };
 
   watch(rulesForm.value, () => {
     convertCmToInch();
-    console.log('只要变化就执行');
     watchPosition();
     watchTxtRadio();
     watchTxt();
+    watchTxtColor();
+    watchTxtSize();
+    watchRuleColor();
+    watchRuleValue();
   });
 
   //新增fabric标尺
@@ -270,7 +319,7 @@
             txt1: {
               fill: rulesForm.value.ruleColor, //标尺颜色
               //标尺粗细
-              strokeWidth: Number(rulesForm.value.rulerValue) / 20,
+              strokeWidth: Number(rulesForm.value.ruleValue) / 20,
               top: collectRulerImageRadio == 0 ? 0 : 30
             },
             txt2: {
@@ -316,7 +365,7 @@
           // 字体大小
           rulesForm.value.txtValue = items[1].fontSize;
           // 标尺粗细
-          rulesForm.value.rulerValue = items[0].strokeWidth / 5;
+          rulesForm.value.ruleValue = items[0].strokeWidth / 5;
           // 文本位置
           if (items[0].top > items[1].top) {
             // 标尺下方
@@ -385,7 +434,7 @@
                 <el-color-picker v-model="rulesForm.ruleColor" />
               </el-form-item>
               <el-form-item label="标尺粗细">
-                <el-slider v-model="rulesForm.rulerValue" :max="10" :min="1" />
+                <el-slider v-model="rulesForm.ruleValue" :max="10" :min="1" />
               </el-form-item>
               <el-form-item label="文本位置">
                 <el-radio-group v-model="rulesForm.txtPosition">
