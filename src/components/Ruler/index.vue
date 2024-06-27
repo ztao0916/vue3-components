@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, onMounted, nextTick, watchEffect } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
   import { fabric } from 'fabric';
   const props = defineProps({
     modelValue: {
@@ -11,6 +11,21 @@
       default: ''
     }
   });
+  //#region dialog的显示隐藏
+  const emit = defineEmits(['update:modelValue']);
+  const curShowRuler = computed({
+    get() {
+      return props.modelValue;
+    },
+    set(newValue) {
+      emit('update:modelValue', newValue);
+    }
+  });
+  //关闭dialog,通知父元素关闭,使用emit方法实现
+  const handleClose = () => {
+    curShowRuler.value = false;
+  };
+  //#endregion
   //根据图片的src获取图片宽高
   const getImageSize = (src) => {
     return new Promise((resolve, reject) => {
@@ -31,21 +46,10 @@
     width: 0,
     height: 0
   });
-  //定义curShowRuler,跟随props.showRuler变化,使用computed
-  const emit = defineEmits(['update:modelValue']);
-  const curShowRuler = computed({
-    get() {
-      return props.modelValue;
-    },
-    set(newValue) {
-      emit('update:modelValue', newValue);
-    }
-  });
-  //关闭dialog,通知父元素关闭,使用emit方法实现
-  const handleClose = () => {
-    curShowRuler.value = false;
-  };
 
+  //#region fabric逻辑
+  const canvasDom = ref(null);
+  let canvas = null;
   //标尺表单
   const rulesForm = ref({
     text: '', //txt文本
@@ -55,30 +59,97 @@
     rulerValue: 2, //标尺粗细
     cm: '', //展示厘米
     txtRadio: '0', //长度?文本?
-    txtPosition: '1', //文本位置: 上?下?
+    txtPosition: '0', //文本位置: 上?下?
     checkedInch: true //是否展示英寸
   });
+  const inch = ref('');
 
-  const inch = ref('--');
-
-  // 转换函数
+  // 转换函数cm-ch
   const convertCmToInch = () => {
     if (rulesForm.value.checkedInch && rulesForm.value.cm) {
       inch.value = (rulesForm.value.cm * 0.393701).toFixed(2) + 'inch';
     } else {
-      inch.value = '--';
+      inch.value = '';
     }
   };
-  watchEffect(() => {
+  //监听位置下?上?
+  const watchPosition = () => {
+    let txtPosition = rulesForm.value.txtPosition;
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      let items = group.getObjects();
+      if (
+        (txtPosition == 0 && items[0].top > items[1].top) ||
+        (txtPosition == 1 && items[0].top < items[1].top)
+      ) {
+        let temp = items[0].top;
+        items[0].set('top', items[1].top);
+        items[1].set('top', temp);
+        group.set('objects', items);
+        canvas.renderAll();
+      }
+    }
+  };
+
+  //监听txtRadio变化
+  const watchTxtRadio = () => {
+    let value = rulesForm.value.txtRadio;
+    if (value == 0) {
+      //长度
+      rulesForm.value.text = '';
+    } else if (value == 1) {
+      //文本
+      rulesForm.value.cm = '';
+    }
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      if (group) {
+        let items = group.getObjects();
+        // 切换，文本置空
+        items[1].set('text', '');
+        group.set('objects', items);
+        canvas.renderAll();
+      }
+    }
+  };
+  //监听cm,text变化,更新到canvas上
+  const watchTxt = () => {
+    let txt = '';
+    if (rulesForm.value.txtRadio == 0) {
+      //展示长度
+      txt = rulesForm.value.cm;
+      //是否展示英寸
+      if (rulesForm.value.checkedInch) {
+        // 勾选展示
+        let n = (1 * txt * 0.3937007874).toFixed(2);
+        txt = `${txt}cm/${n}inch`;
+      } else {
+        txt = `${txt}cm`;
+      }
+    } else if (rulesForm.value.txtRadio == 1) {
+      txt = rulesForm.value.text;
+    }
+    if (canvas && canvas._activeObject) {
+      let group = canvas._activeObject;
+      if (group) {
+        let items = group.getObjects();
+        items[1].set('text', txt);
+        group.set('objects', items);
+        canvas.renderAll();
+      }
+    }
+  };
+
+  watch(rulesForm.value, () => {
     convertCmToInch();
+    console.log('只要变化就执行');
+    watchPosition();
+    watchTxtRadio();
+    watchTxt();
   });
 
-  //#region fabric逻辑
-  const canvasDom = ref(null);
-  let canvas = null;
-
   //新增fabric标尺
-  function Add(txt, style) {
+  const Add = (txt, style) => {
     // ┝━━━━━━━━━━━━┥  ├────────┤ ━ ─
     const txt1 = new fabric.IText(
       '▇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━▇',
@@ -86,7 +157,6 @@
         originX: 'center',
         originY: 'center',
         top: style.txt1.top,
-        // angle: 90,
         fill: style.txt1.fill,
         scaleX: 0.2,
         stroke: style.txt1.fill,
@@ -105,9 +175,7 @@
       fontSize: style.txt2.fontSize
     });
 
-    var group = new fabric.Group([txt1, txt2], {
-      // objectCaching: false, // 不缓存！！！
-      // width: style.width,
+    const group = new fabric.Group([txt1, txt2], {
       left: style.left,
       top: style.top
     });
@@ -122,35 +190,21 @@
     group.setControlVisible('mb', false); // 中下
     canvas.setActiveObject(group);
     // 放大缩小文字大小不变
-    function updateControlsScaling(obj) {
-      var txt2 = obj.target.item(1),
-        // txt1 = obj.target.item(0),
+    const updateControlsScaling = function (obj) {
+      const txt2 = obj.target.item(1),
         group = obj.target;
       txt2.set('scaleX', 1 / group.scaleX);
       canvas.renderAll();
-    }
+    };
     canvas.on({
-      // 'object:moving': updateControls,
       'object:scaling': updateControlsScaling
-      // 'object:resizing': updateControls,
-      // 'object:rotating': updateControls,
-      // 'object:skewing': updateControls
     });
-  }
-  function deleteObject(eventData, transform) {
-    var target = transform;
-    var canvas = target.canvas;
+  };
+  const deleteObject = (ed, transform) => {
+    let target = transform;
     canvas.remove(target);
     canvas.requestRenderAll();
-  }
-  //根据宽度值txt获取DOM的宽度,返回宽度
-  function _getWidth(txt) {
-    let fontSize = layero.find('.slider-range-collect1-txt').text() * 1;
-    layero.find('[name=txtWidth]').text(txt);
-    layero.find('[name=txtWidth]').css('fontSize', fontSize + 'px');
-    return layero.find('[name=txtWidth]').width();
-  }
-
+  };
   const init = (imgSize) => {
     //⚠️: fabric的canvas变量不能设置成响应式
     canvas = new fabric.Canvas(canvasDom.value, {
@@ -167,9 +221,9 @@
       scaleY: canvas.height / imgSize.height
     });
   };
-
   //#endregion
 
+  //#region mounted逻辑处理-包括点击,删除等
   onMounted(() => {
     getImageSize(props.src).then((res) => {
       imgSize.value = res;
@@ -179,7 +233,7 @@
     document.addEventListener('keydown', function (event) {
       if (
         (event.key == 'Backspace' || event.key == 'Delete') &&
-        !event.target.classList.contains('layui-input')
+        !event.target.classList.contains('el-input__inner')
       ) {
         deleteObject('', canvas._activeObject);
       }
@@ -266,14 +320,15 @@
           // 文本位置
           if (items[0].top > items[1].top) {
             // 标尺下方
-            rulesForm.value.txtPosition = '1';
+            rulesForm.value.txtPosition = '0';
           } else {
-            rulesForm.value.txtPosition = '2';
+            rulesForm.value.txtPosition = '1';
           }
         }
       }
     });
   });
+  //#endregion
 </script>
 
 <template>
@@ -288,7 +343,6 @@
       :before-close="handleClose"
     >
       <div>
-        <!-- <div>我是canvas内容, {{ curShowRuler }}</div> -->
         <div class="canvas-container">
           <div class="canvas-handle">
             <el-form
@@ -335,8 +389,8 @@
               </el-form-item>
               <el-form-item label="文本位置">
                 <el-radio-group v-model="rulesForm.txtPosition">
-                  <el-radio value="1">下方</el-radio>
-                  <el-radio value="2">上方</el-radio>
+                  <el-radio value="0">下方</el-radio>
+                  <el-radio value="1">上方</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-form>
@@ -370,6 +424,7 @@
       .canvas-img {
         //阴影效果
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border: 1px solid #ccc;
       }
     }
     .flex {
