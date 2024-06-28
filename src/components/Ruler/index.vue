@@ -12,7 +12,7 @@
     }
   });
   //#region dialog的显示隐藏
-  const emit = defineEmits(['update:modelValue']);
+  const emit = defineEmits(['update:modelValue', 'base64URL']);
   const curShowRuler = computed({
     get() {
       return props.modelValue;
@@ -30,6 +30,7 @@
   const getImageSize = (src) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
+
       img.src = src;
       img.onload = () => {
         resolve({
@@ -265,10 +266,16 @@
     });
     fabric.Object.prototype.transparentCorners = false;
     //把图片加载到画布上,设为背景图
-    canvas.setBackgroundImage(props.src, canvas.renderAll.bind(canvas), {
-      scaleX: canvas.width / imgSize.width,
-      scaleY: canvas.height / imgSize.height
-    });
+    let newImg = new Image();
+    newImg.crossOrigin = 'anonymous'; // 设置 crossOrigin 属性
+    newImg.src = props.src; // 图片地址
+    newImg.onload = function () {
+      let bg = new fabric.Image(newImg);
+      canvas.setBackgroundImage(bg, canvas.renderAll.bind(canvas), {
+        scaleX: canvas.width / imgSize.width,
+        scaleY: canvas.height / imgSize.height
+      });
+    };
   };
   //#endregion
 
@@ -377,6 +384,17 @@
       }
     });
   });
+  //保存操作
+  const savaHandle = () => {
+    console.log('我要保存啦');
+    //如果src包含jpg,那么format为jpg,否则为png
+    const base64Url =
+      props.src.indexOf('.jpg') > -1
+        ? canvas.toDataURL().replace('data:image/png;', 'data:image/jpeg;')
+        : canvas.toDataURL();
+    //传递给父元素
+    emit('base64URL', base64Url);
+  };
   //#endregion
 </script>
 
@@ -453,7 +471,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleClose">关闭</el-button>
-          <el-button type="primary"> 保存</el-button>
+          <el-button type="primary" @click="savaHandle()"> 保存</el-button>
         </div>
       </template>
     </el-dialog>

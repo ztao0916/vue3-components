@@ -20,6 +20,11 @@
   const imgSrc = ref(
     'https://wxalbum-10001658.image.myqcloud.com/wxalbum/53502/20240609013024/88428bc9471525598af2acd4a0cf40e0.jpg'
   );
+
+  const getBase64 = (val) => {
+    //父组件接受到的值
+    console.log('父组件', val);
+  };
 </script>
 
 <template>
@@ -35,7 +40,12 @@
     <div class="main-item">
       <img :src="imgSrc" width="150" height="150" />
       <el-button @click="showRuler = !showRuler">标尺功能</el-button>
-      <Ruler v-if="showRuler" v-model="showRuler" :src="imgSrc" />
+      <Ruler
+        v-if="showRuler"
+        v-model="showRuler"
+        :src="imgSrc"
+        @base64URL="getBase64"
+      />
     </div>
   </div>
 </template>
