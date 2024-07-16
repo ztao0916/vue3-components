@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "ag-grid-vue3": "latest",
+    "ag-grid-community": "latest",
+    "ag-grid-enterprise": "latest",
     "element-plus": "^2.7.6",
     "fabric": "^5.3.0",
     "mt-image-editor-sdk": "3.3.1",

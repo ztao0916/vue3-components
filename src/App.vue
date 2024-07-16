@@ -2,6 +2,7 @@
   import { ref } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
   import imageEditor from '@/components/ImageEditor/index.vue';
+  import AgGridDemo from '@/components/Aggrid/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import Ruler from '@/components/Ruler/index.vue';
   import base64Src from './utils/base64.js';
@@ -46,6 +47,9 @@
         :src="imgSrc"
         @base64URL="getBase64"
       />
+    </div>
+    <div>
+      <ag-grid-demo></ag-grid-demo>
     </div>
   </div>
 </template>
