@@ -4,6 +4,7 @@
   import 'ag-grid-enterprise';
 
   import { LicenseManager } from 'ag-grid-enterprise';
+
   LicenseManager.setLicenseKey(
     'IRDEVELOPERS_COM_NDEwMjM0NTgwMDAwMA==f08aae16269f416fe8d65bbf9396be5f'
   );
@@ -37,6 +38,7 @@
 <template>
   <div style="width: 700px">
     <ag-grid-vue
+      :localeText="$localeText"
       :rowData="rowData"
       :columnDefs="columnDefs"
       style="height: 500px"

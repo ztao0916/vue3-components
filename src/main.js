@@ -7,6 +7,7 @@
 import { createApp } from 'vue';
 import ElementPlus from 'element-plus';
 import VueVirtualScroller from 'vue-virtual-scroller';
+import { AG_GRID_LOCALE_CN } from '@ag-grid-community/locale';
 import App from './App.vue';
 import { clickOutside, toolTip } from './directives/index';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
@@ -29,5 +30,7 @@ app.use(ElementPlus, {
 app.directive('click-outside', clickOutside);
 app.directive('toolTip', toolTip);
 app.use(VueVirtualScroller);
+//设置全局变量
+app.config.globalProperties.$localeText = AG_GRID_LOCALE_CN;
 
 app.mount('#app');
