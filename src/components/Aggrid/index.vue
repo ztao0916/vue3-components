@@ -50,6 +50,10 @@
       }
     ]
   };
+  const paginationPageSize = ref(null);
+  const paginationPageSizeSelector = ref(null);
+  paginationPageSize.value = 500;
+  paginationPageSizeSelector.value = [200, 500, 1000];
 </script>
 
 <template>
@@ -61,6 +65,9 @@
       :sideBar="true"
       :enableRangeSelection="true"
       :enableCharts="true"
+      :pagination="true"
+      :paginationPageSize="paginationPageSize"
+      :paginationPageSizeSelector="paginationPageSizeSelector"
       :defaultColDef="defaultColDef"
       :statusBar="statusBar"
       style="height: 500px"
