@@ -6,6 +6,8 @@
 
   import { LicenseManager } from 'ag-grid-enterprise';
 
+  import DemoCellRenderer from './cell-renderers/demo.vue';
+
   LicenseManager.setLicenseKey(
     'IRDEVELOPERS_COM_NDEwMjM0NTgwMDAwMA==f08aae16269f416fe8d65bbf9396be5f'
   );
@@ -18,6 +20,13 @@
     let newData = await fetchData.json();
     rowData.value = newData;
   });
+  const ragRenderer = function ragRenderer(params) {
+    return (
+      '<span class="rag-element"><font color="red">' +
+      params.value +
+      '</font></span>'
+    );
+  };
 
   //自定义列属性
 
@@ -28,8 +37,20 @@
       headerName: '运动员',
       enableRowGroup: true
     },
-    { field: 'age', filter: true, headerName: '年龄', enableRowGroup: true },
-    { field: 'date', filter: true, headerName: '生日' },
+    {
+      field: 'age',
+      filter: true,
+      headerName: '年龄',
+      enableRowGroup: true,
+      cellRenderer: DemoCellRenderer,
+      autoHeight: true
+    },
+    {
+      field: 'date',
+      filter: true,
+      headerName: '生日',
+      cellRenderer: ragRenderer
+    },
     { field: 'country', filter: 'agSetColumnFilter', headerName: '国家' },
     { field: 'sport', filter: 'agMultiColumnFilter', headerName: '运动项目' },
     { field: 'gold', filter: 'agNumberColumnFilter', headerName: '金牌' },
