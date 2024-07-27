@@ -63,14 +63,6 @@
     flex: 1
   };
 
-  const statusBar = {
-    statusPanels: [
-      {
-        statusPanel: 'agTotalAndFilteredRowCountComponent',
-        align: 'left'
-      }
-    ]
-  };
   const paginationPageSize = ref(null);
   const paginationPageSizeSelector = ref(null);
   paginationPageSize.value = 500;
@@ -90,7 +82,6 @@
       :paginationPageSize="paginationPageSize"
       :paginationPageSizeSelector="paginationPageSizeSelector"
       :defaultColDef="defaultColDef"
-      :statusBar="statusBar"
       style="height: 500px"
       class="ag-theme-quartz"
     >
