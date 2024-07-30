@@ -60,7 +60,26 @@
   ];
 
   const defaultColDef = {
-    flex: 1
+    filter: 'agMultiColumnFilter', // 开启多列过滤
+    sortable: true, // 开启排序
+    enableRowGroup: true, // 开启列分组
+    resizable: true // 开启列宽拖拽
+  };
+  //定义侧边栏
+  const sidebar = {
+    toolPanels: [
+      {
+        id: 'columns',
+        labelDefault: 'Columns',
+        labelKey: 'columns',
+        iconKey: 'columns',
+        toolPanel: 'agColumnsToolPanel',
+        hiddenByDefault: true,
+        minWidth: 225,
+        maxWidth: 225,
+        width: 225
+      }
+    ]
   };
 
   const paginationPageSize = ref(null);
@@ -72,16 +91,16 @@
 <template>
   <div style="width: 1800px">
     <ag-grid-vue
-      :localeText="$localeText"
-      :rowData="rowData"
-      :columnDefs="columnDefs"
-      :sideBar="true"
-      :enableRangeSelection="true"
-      :enableCharts="true"
+      :locale-text="$localeText"
+      :row-data="rowData"
+      :column-defs="columnDefs"
+      :side-bar="sidebar"
+      :enable-range-selection="true"
+      :enable-charts="true"
       :pagination="true"
-      :paginationPageSize="paginationPageSize"
-      :paginationPageSizeSelector="paginationPageSizeSelector"
-      :defaultColDef="defaultColDef"
+      :pagination-page-size="paginationPageSize"
+      :pagination-page-size-selector="paginationPageSizeSelector"
+      :default-colDef="defaultColDef"
       style="height: 500px"
       class="ag-theme-quartz"
     >

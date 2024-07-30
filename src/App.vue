@@ -48,7 +48,7 @@
         @base64URL="getBase64"
       />
     </div>
-    <div>
+    <div style="margin-top: 50px">
       <ag-grid-demo></ag-grid-demo>
     </div>
   </div>
