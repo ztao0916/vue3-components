@@ -33,9 +33,20 @@
       headerName: '运动员',
       rowSpan: (params) => {
         //遍历rowData.value,获取到和params.data.athlete的值相同的数据的数量
-        return rowData.value.filter(
-          (item) => item.athlete === params.data.athlete
-        ).length;
+        var athlete = params.data ? params.data.athlete : undefined;
+        if (athlete === 'Aleksey Nemov') {
+          // have all Russia age columns width 2
+          return 2;
+        } else if (athlete === 'Ryan Lochte') {
+          // have all United States column width 4
+          return 4;
+        } else {
+          // all other rows should be just normal
+          return 1;
+        }
+      },
+      cellClassRules: {
+        'cell-span': "value==='Aleksey Nemov' || value==='Ryan Lochte'"
       }
     },
     {
@@ -115,4 +126,7 @@
 <style>
   @import 'ag-grid-community/styles/ag-grid.css';
   @import 'ag-grid-community/styles/ag-theme-quartz.css';
+  .cell-span {
+    background-color: #fff;
+  }
 </style>
