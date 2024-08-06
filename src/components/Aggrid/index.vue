@@ -30,7 +30,13 @@
     {
       field: 'athlete',
       filter: 'agMultiColumnFilter',
-      headerName: '运动员'
+      headerName: '运动员',
+      rowSpan: (params) => {
+        //遍历rowData.value,获取到和params.data.athlete的值相同的数据的数量
+        return rowData.value.filter(
+          (item) => item.athlete === params.data.athlete
+        ).length;
+      }
     },
     {
       field: 'age',
@@ -95,6 +101,7 @@
       :enable-range-selection="true"
       :enable-charts="true"
       :pagination="true"
+      :suppressRowTransform="true"
       :pagination-page-size="paginationPageSize"
       :pagination-page-size-selector="paginationPageSizeSelector"
       :default-colDef="defaultColDef"
