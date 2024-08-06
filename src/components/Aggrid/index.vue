@@ -20,7 +20,8 @@
     );
     let newData = await fetchData.json();
     rowData.value = newData.splice(0, 600);
-    getRowId.value = (params) => String(params.data.id); //写死的
+    // getRowId.value = (params) => String(params.data.id); //写死的
+    //:get-row-id="getRowId"
   });
 
   //自定义列属性
@@ -29,8 +30,7 @@
     {
       field: 'athlete',
       filter: 'agMultiColumnFilter',
-      headerName: '运动员',
-      enableRowGroup: true
+      headerName: '运动员'
     },
     {
       field: 'age',
@@ -95,7 +95,6 @@
       :enable-range-selection="true"
       :enable-charts="true"
       :pagination="true"
-      :get-row-id="getRowId"
       :pagination-page-size="paginationPageSize"
       :pagination-page-size-selector="paginationPageSizeSelector"
       :default-colDef="defaultColDef"
