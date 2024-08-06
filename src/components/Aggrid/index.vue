@@ -1,32 +1,27 @@
 <script setup>
-  import { ref, onMounted } from 'vue';
+  import { ref, onBeforeMount } from 'vue';
   import { AgGridVue } from 'ag-grid-vue3'; // Vue Grid Logic
 
   import 'ag-grid-enterprise';
 
   import { LicenseManager } from 'ag-grid-enterprise';
 
-  import DemoCellRenderer from './cell-renderers/demo.vue';
+  // import DemoCellRenderer from './cell-renderers/demo.vue';
 
   LicenseManager.setLicenseKey(
     'IRDEVELOPERS_COM_NDEwMjM0NTgwMDAwMA==f08aae16269f416fe8d65bbf9396be5f'
   );
   //定义数据
+  const getRowId = ref(null);
   const rowData = ref([]);
-  onMounted(async () => {
+  onBeforeMount(async () => {
     let fetchData = await fetch(
       'https://www.ag-grid.com/example-assets/olympic-winners.json'
     );
     let newData = await fetchData.json();
-    rowData.value = newData;
+    rowData.value = newData.splice(0, 600);
+    getRowId.value = (params) => String(params.data.id); //写死的
   });
-  const ragRenderer = function ragRenderer(params) {
-    return (
-      '<span class="rag-element"><font color="red">' +
-      params.value +
-      '</font></span>'
-    );
-  };
 
   //自定义列属性
 
@@ -42,14 +37,13 @@
       filter: true,
       headerName: '年龄',
       enableRowGroup: true,
-      cellRenderer: DemoCellRenderer,
+      // cellRenderer: DemoCellRenderer,
       autoHeight: true
     },
     {
       field: 'date',
       filter: true,
-      headerName: '生日',
-      cellRenderer: ragRenderer
+      headerName: '生日'
     },
     { field: 'country', filter: 'agSetColumnFilter', headerName: '国家' },
     { field: 'sport', filter: 'agMultiColumnFilter', headerName: '运动项目' },
@@ -63,7 +57,10 @@
     filter: 'agMultiColumnFilter', // 开启多列过滤
     sortable: true, // 开启排序
     enableRowGroup: true, // 开启列分组
-    resizable: true // 开启列宽拖拽
+    resizable: true, // 开启列宽拖拽
+    wrapHeaderText: true, // 列头文本换行
+    autoHeaderHeight: true, // 列头文本自动换行
+    flex: 1
   };
   //定义侧边栏
   const sidebar = {
@@ -98,9 +95,11 @@
       :enable-range-selection="true"
       :enable-charts="true"
       :pagination="true"
+      :get-row-id="getRowId"
       :pagination-page-size="paginationPageSize"
       :pagination-page-size-selector="paginationPageSizeSelector"
       :default-colDef="defaultColDef"
+      row-group-panel-show="always"
       style="height: 500px"
       class="ag-theme-quartz"
     >
