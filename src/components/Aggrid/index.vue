@@ -23,9 +23,22 @@
     // getRowId.value = (params) => String(params.data.id); //写死的
     //:get-row-id="getRowId"
   });
+  /**
+   * 1.获取rowData.value中所有的athlete,去重,得到athletes数组
+   */
+  let countAthletes = (data) => {
+    // 使用 reduce 函数来统计每个 athlete 的出现次数
+    const athleteCounts = data.reduce((acc, curr) => {
+      if (curr.athlete) {
+        acc[curr.athlete] = (acc[curr.athlete] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    return athleteCounts;
+  };
 
   //自定义列属性
-
   const columnDefs = [
     {
       field: 'athlete',
@@ -33,20 +46,13 @@
       headerName: '运动员',
       rowSpan: (params) => {
         //遍历rowData.value,获取到和params.data.athlete的值相同的数据的数量
-        var athlete = params.data ? params.data.athlete : undefined;
-        if (athlete === 'Aleksey Nemov') {
-          // have all Russia age columns width 2
-          return 2;
-        } else if (athlete === 'Ryan Lochte') {
-          // have all United States column width 4
-          return 4;
-        } else {
-          // all other rows should be just normal
-          return 1;
-        }
+        let dataLength = rowData.value.filter(
+          (item) => item.athlete === params.data?.athlete
+        ).length;
+        return dataLength;
       },
-      cellClassRules: {
-        'cell-span': "value==='Aleksey Nemov' || value==='Ryan Lochte'"
+      cellClassRule: {
+        'cell-span': `value !=undefined && value !=null`
       }
     },
     {
