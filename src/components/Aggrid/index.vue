@@ -14,6 +14,7 @@
   //定义数据
   const getRowId = ref(null);
   const rowData = ref([]);
+  const lengthObj = ref({});
   onBeforeMount(async () => {
     let fetchData = await fetch(
       'https://www.ag-grid.com/example-assets/olympic-winners.json'
@@ -22,6 +23,7 @@
     rowData.value = newData.splice(0, 600);
     // getRowId.value = (params) => String(params.data.id); //写死的
     //:get-row-id="getRowId"
+    lengthObj.value = countAthletes(rowData.value);
   });
   /**
    * 1.获取rowData.value中所有的athlete,去重,得到athletes数组
@@ -34,7 +36,7 @@
       }
       return acc;
     }, {});
-
+    console.log(athleteCounts);
     return athleteCounts;
   };
 
@@ -45,14 +47,20 @@
       filter: 'agMultiColumnFilter',
       headerName: '运动员',
       rowSpan: (params) => {
-        //遍历rowData.value,获取到和params.data.athlete的值相同的数据的数量
-        let dataLength = rowData.value.filter(
-          (item) => item.athlete === params.data?.athlete
-        ).length;
-        return dataLength;
+        var athlete = params.data ? params.data.athlete : undefined;
+        if (athlete === 'Aleksey Nemov') {
+          // have all Russia age columns width 2
+          return 2;
+        } else if (athlete === 'Ryan Lochte') {
+          // have all United States column width 4
+          return 4;
+        } else {
+          // all other rows should be just normal
+          return 1;
+        }
       },
-      cellClassRule: {
-        'cell-span': `value !=undefined && value !=null`
+      cellClassRules: {
+        'cell-span': "value==='Aleksey Nemov' || value==='Ryan Lochte'"
       }
     },
     {
@@ -133,6 +141,6 @@
   @import 'ag-grid-community/styles/ag-grid.css';
   @import 'ag-grid-community/styles/ag-theme-quartz.css';
   .cell-span {
-    background-color: #fff;
+    background-color: #f00;
   }
 </style>
