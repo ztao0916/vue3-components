@@ -45,6 +45,8 @@
     {
       field: 'athlete',
       filter: 'agMultiColumnFilter',
+      headerCheckboxSelection: true,
+      checkboxSelection: true,
       headerName: '运动员',
       rowSpan: (params) => {
         var athlete = params.data ? params.data.athlete : undefined;
@@ -114,25 +116,37 @@
   const paginationPageSizeSelector = ref(null);
   paginationPageSize.value = 500;
   paginationPageSizeSelector.value = [200, 500, 1000];
+
+  //定义gridReady事件
+  const gridApi = ref(null);
+  const onGridReady = (params) => {
+    gridApi.value = params.api;
+  };
+
+  const getSelectItem = () => {
+    let selectItem = gridApi.value.getSelectedRows();
+    console.log(selectItem);
+  };
 </script>
 
 <template>
   <div style="width: 1800px">
+    <el-button @click="getSelectItem" type="primary">获取选中项</el-button>
     <ag-grid-vue
       :locale-text="$localeText"
       :row-data="rowData"
       :column-defs="columnDefs"
       :side-bar="sidebar"
-      :enable-range-selection="true"
-      :enable-charts="true"
       :pagination="true"
       :suppressRowTransform="true"
       :pagination-page-size="paginationPageSize"
       :pagination-page-size-selector="paginationPageSizeSelector"
       :default-colDef="defaultColDef"
       row-group-panel-show="always"
+      row-selection="multiple"
       style="height: 500px"
       class="ag-theme-quartz"
+      @grid-ready="onGridReady"
     >
     </ag-grid-vue>
   </div>
@@ -141,6 +155,6 @@
   @import 'ag-grid-community/styles/ag-grid.css';
   @import 'ag-grid-community/styles/ag-theme-quartz.css';
   .cell-span {
-    background-color: #f00;
+    background-color: #fff;
   }
 </style>
