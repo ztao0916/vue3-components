@@ -6,7 +6,7 @@
 
   import { LicenseManager } from 'ag-grid-enterprise';
 
-  // import DemoCellRenderer from './cell-renderers/demo.vue';
+  import DemoCellRenderer from './cell-renderers/demo.vue';
 
   LicenseManager.setLicenseKey(
     'IRDEVELOPERS_COM_NDEwMjM0NTgwMDAwMA==f08aae16269f416fe8d65bbf9396be5f'
@@ -47,30 +47,14 @@
       filter: 'agMultiColumnFilter',
       headerCheckboxSelection: true,
       checkboxSelection: true,
-      headerName: '运动员',
-      rowSpan: (params) => {
-        var athlete = params.data ? params.data.athlete : undefined;
-        if (athlete === 'Aleksey Nemov') {
-          // have all Russia age columns width 2
-          return 2;
-        } else if (athlete === 'Ryan Lochte') {
-          // have all United States column width 4
-          return 4;
-        } else {
-          // all other rows should be just normal
-          return 1;
-        }
-      },
-      cellClassRules: {
-        'cell-span': "value==='Aleksey Nemov' || value==='Ryan Lochte'"
-      }
+      headerName: '运动员'
     },
     {
       field: 'age',
       filter: true,
       headerName: '年龄',
       enableRowGroup: true,
-      // cellRenderer: DemoCellRenderer,
+      cellRenderer: DemoCellRenderer,
       autoHeight: true
     },
     {
