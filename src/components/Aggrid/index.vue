@@ -36,7 +36,7 @@
       }
       return acc;
     }, {});
-    console.log(athleteCounts);
+    // console.log(athleteCounts);
     return athleteCounts;
   };
 

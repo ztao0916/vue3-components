@@ -6,6 +6,7 @@
   import dataJson2 from '@/utils/data2.js';
   import Ruler from '@/components/Ruler/index.vue';
   import base64Src from './utils/base64.js';
+  import VueUtils from '@/components/VueUtils/index.vue';
   import dataJson from '@/utils/data.js';
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
@@ -47,6 +48,9 @@
         :src="imgSrc"
         @base64URL="getBase64"
       />
+    </div>
+    <div style="width: 200px; height: 200px; border: 1px solid #ccc">
+      <vue-utils />
     </div>
     <div style="margin-top: 50px">
       <ag-grid-demo></ag-grid-demo>
