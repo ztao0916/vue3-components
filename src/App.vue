@@ -52,7 +52,7 @@
     <div class="w-[300px] h-7 bg-gray-400">
       <vue-utils />
     </div>
-    <div style="margin-top: 50px">
+    <div class="mt-7">
       <ag-grid-demo></ag-grid-demo>
     </div>
   </div>
