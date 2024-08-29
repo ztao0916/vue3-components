@@ -11,6 +11,7 @@ import { AG_GRID_LOCALE_CN } from '@ag-grid-community/locale';
 import App from './App.vue';
 import { clickOutside, toolTip } from './directives/index';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+import '@/styles/tailwind.css';
 import 'element-plus/dist/index.css';
 import 'normalize.css';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'; // 引入它的 css
