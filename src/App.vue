@@ -49,7 +49,7 @@
         @base64URL="getBase64"
       />
     </div>
-    <div class="w-[300px] h-7 bg-gray-400">
+    <div class="!w-[300px] h-20 bg-gray-400">
       <vue-utils />
     </div>
     <div class="mt-7">
