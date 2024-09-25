@@ -1,38 +1,48 @@
 <template>
-  <div v-click-outside="close">
-    <!-- 点击输入框切换面板显示隐藏 -->
-    <div ref="zcascader" class="z-cascader__wrapper" @click="toggle">
-      <div class="z-cascader__container">
-        <div class="z-cascader__tags">
-          <div
-            v-for="item in selectedLabels"
-            :key="item"
-            class="z-cascader__tags__item"
-          >
-            <template v-if="/\+\d+/.test(item)">
-              <el-tag type="info">{{ item }}</el-tag>
-            </template>
-            <template v-else>
-              <el-tag type="info" closable @close="handleCheckedClearChange">
-                {{ item }}
-              </el-tag>
-            </template>
+  <el-popover
+    placement="bottom-start"
+    trigger="click"
+    width="fit-content"
+    popper-style="padding:5px;"
+    :hide-after="0"
+    @before-enter="handleShow"
+    @before-leave="handleHide"
+  >
+    <template #reference>
+      <!-- 点击输入框切换面板显示隐藏 -->
+      <div ref="zcascader" class="z-cascader__wrapper">
+        <div class="z-cascader__container">
+          <div class="z-cascader__tags">
+            <div
+              v-for="item in selectedLabels"
+              :key="item"
+              class="z-cascader__tags__item"
+            >
+              <template v-if="/\+\d+/.test(item)">
+                <el-tag type="info">{{ item }}</el-tag>
+              </template>
+              <template v-else>
+                <el-tag type="info" closable @close="handleCheckedClearChange">
+                  {{ item }}
+                </el-tag>
+              </template>
+            </div>
           </div>
+          <el-input
+            :placeholder="showPlaceholder()"
+            class="z_cascader__input"
+            v-model="searchText"
+          >
+            <template #suffix>
+              <el-icon v-if="isVisible"><ArrowUp /></el-icon>
+              <el-icon v-else><ArrowDown /></el-icon>
+            </template>
+          </el-input>
         </div>
-        <el-input
-          :placeholder="showPlaceholder()"
-          class="z_cascader__input"
-          v-model="searchText"
-        >
-          <template #suffix>
-            <el-icon v-if="isVisible"><ArrowUp /></el-icon>
-            <el-icon v-else><ArrowDown /></el-icon>
-          </template>
-        </el-input>
       </div>
-    </div>
+    </template>
     <!-- 下拉部分 -->
-    <teleport to="body">
+    <template #default>
       <div v-show="isVisible" ref="zdropdown" class="zdropdown" @click.stop>
         <template v-if="!isSearching">
           <div class="z-cascader-panel">
@@ -107,8 +117,8 @@
           </div>
         </template>
       </div>
-    </teleport>
-  </div>
+    </template>
+  </el-popover>
 </template>
 
 <script setup name="ZCascader">
@@ -284,6 +294,13 @@
   const toggle = () => {
     isVisible.value = !isVisible.value;
   };
+  const handleShow = () => {
+    isVisible.value = true;
+  };
+  const handleHide = () => {
+    isVisible.value = false;
+    searchText.value = '';
+  };
   const close = () => {
     isVisible.value = false;
     searchText.value = '';
@@ -396,11 +413,11 @@
   );
 
   // 监听下拉框的显示隐藏
-  watch(isVisible, (newVal) => {
-    if (newVal) {
-      setDropdownPosition();
-    }
-  });
+  // watch(isVisible, (newVal) => {
+  //   if (newVal) {
+  //     setDropdownPosition();
+  //   }
+  // });
 
   watch(
     () => props.modelValue,
@@ -503,13 +520,13 @@
     }
   }
   .zdropdown {
-    position: absolute;
+    // position: absolute;
     display: flex;
     flex-direction: column;
     background-color: #fff;
     z-index: 20231115;
-    box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
-      0px 8px 20px rgba(0, 0, 0, 0.08);
+    // box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
+    //   0px 8px 20px rgba(0, 0, 0, 0.08);
     .zdropdown__search {
       width: fit-content;
       box-sizing: border-box;
@@ -562,11 +579,6 @@
       font-size: 14px;
       .floor-item {
         background-color: #fff;
-        border: 1px solid #dcdfe6;
-        border-right: none;
-        &:last-child {
-          border-right: 1px solid #dcdfe6;
-        }
       }
     }
   }

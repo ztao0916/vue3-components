@@ -27,6 +27,30 @@
     //父组件接受到的值
     console.log('父组件', val);
   };
+  const value = ref('');
+
+  const options = [
+    {
+      value: 'Option1',
+      label: 'Option1'
+    },
+    {
+      value: 'Option2',
+      label: 'Option2'
+    },
+    {
+      value: 'Option3',
+      label: 'Option3'
+    },
+    {
+      value: 'Option4',
+      label: 'Option4'
+    },
+    {
+      value: 'Option5',
+      label: 'Option5'
+    }
+  ];
 </script>
 
 <template>
@@ -49,8 +73,18 @@
         @base64URL="getBase64"
       />
     </div>
-    <div class="!w-[300px] h-20 bg-gray-400">
+    <div class="!w-[300px] h-80 bg-gray-400">
       <vue-utils />
+    </div>
+    <div>
+      <el-select v-model="value" placeholder="Select" style="width: 240px">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </div>
     <div class="mt-7">
       <ag-grid-demo></ag-grid-demo>
