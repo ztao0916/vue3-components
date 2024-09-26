@@ -291,17 +291,10 @@
       console.log('没有搜索结果可反选');
     }
   };
-  const toggle = () => {
-    isVisible.value = !isVisible.value;
-  };
   const handleShow = () => {
     isVisible.value = true;
   };
   const handleHide = () => {
-    isVisible.value = false;
-    searchText.value = '';
-  };
-  const close = () => {
     isVisible.value = false;
     searchText.value = '';
   };
@@ -357,13 +350,6 @@
   };
 
   //定义组件内方法
-  //根据输入框的位置设置下拉框的位置
-  const setDropdownPosition = () => {
-    console.log(zcascader.value);
-    const { top, left } = zcascader.value.getBoundingClientRect();
-    zdropdown.value.style.top = `${top + 34}px`;
-    zdropdown.value.style.left = `${left}px`;
-  };
   //初始化结构[不考虑select相关]
   const init = () => {
     store.value = new TreeStore({
@@ -411,13 +397,6 @@
     },
     { immediate: true } // This ensures the watcher is run immediately on component mount
   );
-
-  // 监听下拉框的显示隐藏
-  // watch(isVisible, (newVal) => {
-  //   if (newVal) {
-  //     setDropdownPosition();
-  //   }
-  // });
 
   watch(
     () => props.modelValue,
@@ -525,8 +504,6 @@
     flex-direction: column;
     background-color: #fff;
     z-index: 20231115;
-    // box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
-    //   0px 8px 20px rgba(0, 0, 0, 0.08);
     .zdropdown__search {
       width: fit-content;
       box-sizing: border-box;
@@ -587,8 +564,8 @@
     height: 204px;
     min-width: 400px;
     box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    // overflow-x: hidden;
+    // overflow-y: hidden;
     border-top: 1px solid #dcdfe6;
     color: #606266;
     .recycle-scroller {
@@ -613,6 +590,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        white-space: nowrap;
         &:hover {
           background-color: #f5f7fa;
         }

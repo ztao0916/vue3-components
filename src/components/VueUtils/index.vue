@@ -15,7 +15,7 @@
 
   // mouse position will be updated after mouse idle for 100ms
   const { x, y } = useMouse({ eventFilter: debounceFilter(3000) });
-  console.log(x, y);
+  // console.log(x, y);
 </script>
 
 <template>
