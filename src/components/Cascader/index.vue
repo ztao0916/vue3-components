@@ -95,7 +95,7 @@
               </div>
             </div>
           </div>
-          <div class="z-cascader-search">
+          <div class="z-cascader-search" ref="zCascaderSearch">
             <RecycleScroller
               v-slot="{ item }"
               :items="filteredSearchResults"
@@ -192,6 +192,7 @@
   const searchText = ref('');
   const zcascader = ref(null); // 用于获取点击输入框的dom
   const zdropdown = ref(null); // 用于获取下拉框的dom
+  const zCascaderSearch = ref(null); // 用于获取搜索框的dom
   //搜索内容变化
   const filteredSearchResults = computed(() => {
     if (!searchText.value) {
@@ -204,13 +205,41 @@
     let filteredArray = newValArr.filter(
       (item) => item !== null && item !== undefined && item !== ''
     );
-    return tempResult.filter((item) => {
+    let filterResult = tempResult.filter((item) => {
       return filteredArray.some((val) => {
         //模糊匹配
         return item.showLabel.indexOf(val) > -1;
       });
     });
+    filteredSearchResultsLength(filterResult);
+    return filterResult;
   });
+
+  //获取到搜索内容每一项的长度
+  const filteredSearchResultsLength = (searchResults) => {
+    //遍历searchResults;使用div标签包裹每一项的totalLabel;获取到div的长度
+    let maxWidth = 0;
+    searchResults.forEach((item) => {
+      let div = document.createElement('div');
+      div.innerHTML = item.totalLabel;
+      div.style.visibility = 'hidden'; // 使其不可见但仍占据空间
+      // 将 div 添加到文档body中
+      document.body.appendChild(div);
+      div.style.width = 'fit-content';
+      let divWidth = div.offsetWidth;
+      // 从文档中移除 div（如果不再需要）
+      document.body.removeChild(div);
+      if (divWidth > maxWidth) {
+        maxWidth = divWidth;
+      }
+    });
+    //设置zCascaderSearch的宽度等于maxWidth
+    if (!zCascaderSearch.value) {
+      return;
+    }
+    zCascaderSearch.value.style.width = maxWidth + 'px';
+  };
+
   const isSearching = computed(() => {
     return !(searchText.value.trim() === '');
   });
@@ -564,8 +593,6 @@
     height: 204px;
     min-width: 400px;
     box-sizing: border-box;
-    // overflow-x: hidden;
-    // overflow-y: hidden;
     border-top: 1px solid #dcdfe6;
     color: #606266;
     .recycle-scroller {
@@ -585,21 +612,22 @@
       }
       .scroller-item {
         height: 30px;
-        line-height: 30px;
+        line-height: 32px;
         padding: 0 10px;
+        min-width: 400px;
+        width: max-content !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
         white-space: nowrap;
         &:hover {
           background-color: #f5f7fa;
+          width: max-content !important;
         }
         :deep(.el-checkbox__label) {
           font-size: 14px;
-          width: 350px;
+          width: 100%;
           flex: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
           white-space: nowrap;
         }
       }
