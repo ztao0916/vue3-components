@@ -11,6 +11,8 @@
   LicenseManager.setLicenseKey(
     'IRDEVELOPERS_COM_NDEwMjM0NTgwMDAwMA==f08aae16269f416fe8d65bbf9396be5f'
   );
+  console.log('AgGridVue :>>>', AgGridVue);
+
   //定义数据
   const getRowId = ref(null);
   const rowData = ref([]);
