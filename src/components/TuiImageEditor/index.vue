@@ -14,41 +14,34 @@
 
   // tui-image-editor语言配置，汉化文字
   const localeCN = {
-    Resize: '调整宽高',
+    // override default English locale to your custom
     Crop: '裁剪',
+    Resize: '调整大小',
+    Load: '选择图片',
+    DeleteAll: '全部删除',
+    Delete: '删除',
+    Undo: '撤销',
+    Redo: '反撤销',
+    ZoomIn: '放大',
+    ZoomOut: '缩小',
+    Hand: '拖动',
+    History: '历史记录',
+    Reset: '重置',
     Flip: '镜像',
     Rotate: '旋转',
-    Draw: '画笔',
+    Draw: '画',
     Shape: '形状标注',
     Icon: '图标标注',
     Text: '文字标注',
     Mask: '遮罩',
     Filter: '滤镜',
-
-    Download: '下 载',
-    Load: '上 传',
-
-    Free: '任意线条',
-    Straight: '直线',
-    Color: '颜色',
-    Range: '粗细',
-
-    ZoomIn: '放大',
-    ZoomOut: '缩小',
-    Hand: '手掌',
-    History: '历史',
-    Undo: '撤销',
-    Redo: '反撤销',
-    Reset: '重置',
-    Delete: '删除',
-    DeleteAll: '全部删除',
-
     Bold: '加粗',
     Italic: '斜体',
     Underline: '下划线',
     Left: '左对齐',
     Center: '居中',
     Right: '右对齐',
+    Color: '颜色',
     'Text size': '字体大小',
     Custom: '自定义',
     Square: '正方形',
@@ -56,11 +49,14 @@
     Cancel: '取消',
     'Flip X': 'X 轴',
     'Flip Y': 'Y 轴',
+    Range: '区间',
     Stroke: '描边',
     Fill: '填充',
     Circle: '圆',
     Triangle: '三角',
     Rectangle: '矩形',
+    Free: '曲线',
+    Straight: '直线',
     Arrow: '箭头',
     'Arrow-2': '箭头2',
     'Arrow-3': '箭头3',
@@ -88,101 +84,135 @@
     Threshold: '阈值',
     Tint: '色调',
     Multiply: '正片叠底',
-    Blend: '混合色'
+    Blend: '混合色',
+    Double: '双击',
+    Download: '下载图片'
   };
+
   // tui-image-editor自定义主题样式
   const customTheme = {
-    // image 坐上角度图片
-    'common.bi.image': '', // 替换logo图片 我直接不显示
+    'common.bi.image': 'public/logo.png', //左上角logo图
     'common.bisize.width': '0px',
     'common.bisize.height': '0px',
-    // "common.backgroundImage": "none",
-    'common.border': '1px solid #d5cfcf',
-    'common.backgroundColor': '#fff', // 整体背景颜色
+    'common.backgroundImage': 'none',
+    'common.backgroundColor': '#f3f4f6',
+    'common.border': '1px solid #444',
 
-    // header（头部）
-    // "header.backgroundImage": "none",
-    // "header.border": "0px",
-    'header.backgroundColor': '#000', // 头部的背景颜色
+    // header
+    'header.backgroundImage': 'none',
+    'header.backgroundColor': '#f3f4f6',
+    'header.border': '0px',
+    'header.margin': '0px auto',
 
-    // load button（上传按钮）
-    // "loadButton.backgroundColor": "#fff",
-    // "loadButton.border": "1px solid #ddd",
-    // "loadButton.color": "#222",
-    // "loadButton.fontFamily": "NotoSans, sans-serif",
-    // "loadButton.fontSize": "12px",
-    'loadButton.display': 'none', // 可以直接隐藏掉“上传”按钮
+    // load button
+    'loadButton.backgroundColor': '#fff',
+    'loadButton.border': '1px solid #ddd',
+    'loadButton.color': '#222',
+    'loadButton.fontFamily': 'NotoSans, sans-serif',
+    'loadButton.fontSize': '12px',
+    // "loadButton.width": "150px",
+    // 'loadButton.display': 'none', // 可以直接隐藏掉
 
-    // download button（下载按钮）
-    // "downloadButton.backgroundColor": "#fdba3b", // 下载按钮背景颜色
-    // "downloadButton.border": "1px solid #fdba3b", // 下载按钮边框样式
-    // "downloadButton.color": "#fff", // 下载按钮文字颜色
-    // "downloadButton.fontFamily": "NotoSans, sans-serif",
-    // "downloadButton.fontSize": "12px",
-    'downloadButton.display': 'none', // 可以直接隐藏掉“下载”按钮
+    // download button
+    'downloadButton.backgroundColor': '#fdba3b',
+    'downloadButton.border': '1px solid #fdba3b',
+    'downloadButton.color': '#fff',
+    'downloadButton.fontFamily': 'NotoSans, sans-serif',
+    'downloadButton.fontSize': '12px',
+    // "downloadButton.display": "none", // 可以直接隐藏掉
+
+    // icons default
+    'menu.normalIcon.color': '#8a8a8a',
+    'menu.activeIcon.color': '#555555',
+    'menu.disabledIcon.color': '#434343',
+    'menu.hoverIcon.color': '#e9e9e9',
+    'submenu.normalIcon.color': '#8a8a8a',
+    'submenu.activeIcon.color': '#e9e9e9',
+
+    'menu.iconSize.width': '24px',
+    'menu.iconSize.height': '24px',
+    'submenu.iconSize.width': '32px',
+    'submenu.iconSize.height': '32px',
+
+    // submenu primary color
+    'submenu.backgroundColor': '#1e1e1e',
+    'submenu.partition.color': '#858585',
+
+    // submenu labels
+    'submenu.normalLabel.color': '#858585',
+    'submenu.normalLabel.fontWeight': 'lighter',
+    'submenu.activeLabel.color': '#fff',
+    'submenu.activeLabel.fontWeight': 'lighter',
+
+    // checkbox style
+    'checkbox.border': '1px solid #ccc',
+    'checkbox.backgroundColor': '#fff',
 
     // rango style
-    // "range.pointer.color": "#fff",
-    // "range.bar.color": "#666",
-    // "range.subbar.color": "#d1d1d1",
+    'range.pointer.color': '#fff',
+    'range.bar.color': '#666',
+    'range.subbar.color': '#d1d1d1',
 
-    // "range.disabledPointer.color": "#414141",
-    // "range.disabledBar.color": "#282828",
-    // "range.disabledSubbar.color": "#414141",
+    'range.disabledPointer.color': '#414141',
+    'range.disabledBar.color': '#282828',
+    'range.disabledSubbar.color': '#414141',
 
-    // "range.value.color": "#fff",
-    // "range.value.fontWeight": "lighter",
-    // "range.value.fontSize": "11px",
-    // "range.value.border": "1px solid #353535",
-    // "range.value.backgroundColor": "#151515",
-    // "range.title.color": "#fff",
-    // "range.title.fontWeight": "lighter",
+    'range.value.color': '#fff',
+    'range.value.fontWeight': 'lighter',
+    'range.value.fontSize': '11px',
+    'range.value.border': '1px solid #353535',
+    'range.value.backgroundColor': '#151515',
+    'range.title.color': '#fff',
+    'range.title.fontWeight': 'lighter',
 
     // colorpicker style
-    // "colorpicker.button.border": "1px solid #1e1e1e",
-    // "colorpicker.title.color": "#fff",
-
-    // // 菜单-普通状态 - 绿色
-    'menu.normalIcon.color': '#2d8cf0',
-    // // 菜单-选中状态 - 蓝色
-    'menu.activeIcon.color': 'blue',
-    // // 菜单-禁用状态 - 灰色
-    'menu.disabledIcon.color': 'grey',
-    // // 菜单-鼠标悬浮状态 - 黄色
-    'menu.hoverIcon.color': 'yellow'
+    'colorpicker.button.border': '1px solid #1e1e1e',
+    'colorpicker.title.color': '#fff'
   };
+
   // 定义编辑器的配置选项
   const tuiOptions = {
+    usageStatistics: false, //不发送主机名
     // 编辑器的配置，如UI、尺寸、样式等
     includeUI: {
-      // menu: ["draw", "text"], // 支持的菜单
-      // initMenu: "draw", // 默认开启绘图的功能，初始化时显示的菜单
-      menuBarPosition: 'bottom', // 菜单栏位置
-      loadImage: { path: '', name: '预览图片' }, // 默认加载的图片
-      locale: localeCN, // 文字汉化
-      theme: customTheme // 样式修改
-    },
-    cssMaxWidth: 700,
-    cssMaxHeight: 500,
-    selectionStyle: {
-      cornerSize: 20,
-      rotatingPointOffset: 70
+      loadImage: {
+        path: props.src, //加载的图片链接
+        name: 'image' //图片名称（不重要）
+      },
+      //操作菜单栏
+      // menu: [
+      //   'crop', // 裁切
+      //   'flip', // 翻转
+      //   'rotate', // 旋转
+      //   'draw', // 添加绘画
+      //   'shape', // 添加形状
+      //   'icon', // 添加图标
+      //   'text', // 添加文本
+      //   'mask', // 添加覆盖
+      //   'filter' // 添加滤镜
+      // ],
+      menuBarPosition: 'top', //操作栏位置
+      locale: localeCN, //语言
+      // theme: customTheme, //主题样式
+      uiSize: {
+        //设置容器大小
+        width: '1400px',
+        height: '1000px'
+      }
     }
   };
   // 定义一个用于存储编辑器DOM元素的引用
   const editorRef = ref(null);
   watchEffect(() => {
     if (!editorRef.value) return; // 确保DOM元素存在
-    // 先赋值
-    tuiOptions.includeUI.loadImage.path = props.src;
 
     // 创建ImageEditor实例
-    const editor = new ImageEditor(editorRef.value, tuiOptions);
-  }, []);
+    new ImageEditor(editorRef.value, tuiOptions);
+  });
 </script>
 
 <template>
-  <div class="w-[500px]">
+  <div>
     <div id="tui-image-editor" ref="editorRef"></div>
   </div>
 </template>
