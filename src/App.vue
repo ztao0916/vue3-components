@@ -1,14 +1,13 @@
 <script setup>
   import { ref, watchEffect } from 'vue';
   import Cascader from '@/components/Cascader/index.vue';
-  // import imageEditor from '@/components/ImageEditor/index.vue';
+  import ImageEditor from '@/components/ImageEditor/index.vue';
   import AgGridDemo from '@/components/Aggrid/index.vue';
   import dataJson2 from '@/utils/data2.js';
   import Ruler from '@/components/Ruler/index.vue';
   import base64Src from './utils/base64.js';
   import VueUtils from '@/components/VueUtils/index.vue';
   import dataJson from '@/utils/data.js';
-  import TuiImageEditor from '@/components/TuiImageEditor/index.vue';
 
   const data = ref(dataJson.data.children);
   const data2 = ref(dataJson2.data);
@@ -40,14 +39,10 @@
       <el-button @click="clearHandle">清空选中</el-button>
       <el-button @click="getHandle">获取选中</el-button>
     </div>
-    <!-- tui-image-editor -->
-    <div class="main-item">
-      <TuiImageEditor :src="imgSrc" />
+    <!--image-editor -->
+    <div>
+      <ImageEditor />
     </div>
-    <!-- 美图秀秀 -->
-    <!-- <div class="main-item">
-      <imageEditor></imageEditor>
-    </div> -->
     <!-- 标尺功能 -->
     <!-- <div class="main-item">
       <img :src="imgSrc" width="150" height="150" />
