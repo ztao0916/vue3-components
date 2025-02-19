@@ -19,7 +19,7 @@
 </script>
 
 <template>
-  <div></div>
+  <div>我是工具组件哦</div>
 </template>
 
 <style lang="scss" scoped></style>

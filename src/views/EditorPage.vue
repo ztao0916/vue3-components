@@ -75,8 +75,8 @@
 
 <style lang="scss" scoped>
   #editor {
-    width: 90vw;
-    height: 800px;
+    width: 100vw;
+    height: 100vh;
   }
 
   .aidc-open-frame {
