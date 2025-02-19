@@ -29,11 +29,64 @@
 
 <template>
   <div class="home-container">
-    <el-button type="primary" @click="openEditor">打开AI编辑器</el-button>
-    <el-button type="primary" @click="openCascader">打开级联选择器</el-button>
-    <el-button type="primary" @click="openAgGrid">打开AG Grid</el-button>
-    <el-button type="primary" @click="openUtils">打开工具组件</el-button>
-    <el-button type="primary" @click="openRuler">打开标尺功能</el-button>
+    <div class="title">功能导航</div>
+    <div class="button-group">
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openEditor"
+      >
+        <template #icon>
+          <el-icon><Edit /></el-icon>
+        </template>
+        AI编辑器
+      </el-button>
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openCascader"
+      >
+        <template #icon>
+          <el-icon><Operation /></el-icon>
+        </template>
+        级联选择器
+      </el-button>
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openAgGrid"
+      >
+        <template #icon>
+          <el-icon><Grid /></el-icon>
+        </template>
+        AG Grid
+      </el-button>
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openUtils"
+      >
+        <template #icon>
+          <el-icon><Tools /></el-icon>
+        </template>
+        工具组件
+      </el-button>
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openRuler"
+      >
+        <template #icon>
+          <el-icon><Ruler /></el-icon>
+        </template>
+        标尺功能
+      </el-button>
+    </div>
   </div>
 </template>
 
@@ -41,10 +94,45 @@
   .home-container {
     width: 100%;
     min-height: 100vh;
-    padding: 20px;
+    padding: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #f5f7fa;
+  }
+
+  .title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #303133;
+    margin-bottom: 40px;
+  }
+
+  .button-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-button {
+    height: 60px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    :deep(.el-icon) {
+      font-size: 20px;
+      margin-right: 8px;
+    }
   }
 </style>
