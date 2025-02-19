@@ -82,7 +82,7 @@
         @click="openRuler"
       >
         <template #icon>
-          <el-icon><Ruler /></el-icon>
+          <el-icon><Crop /></el-icon>
         </template>
         标尺功能
       </el-button>
