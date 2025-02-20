@@ -10,12 +10,14 @@
   const iframeRef = ref(null);
   const sdkLoaded = ref(false);
   // 需要拼接的参数，以图片翻译为例。其中apiHost,lang为通用参数，其余为能力输入参数。
-  const translateParam = {
+  const stationParam = {
     apiHost: 'aibcn',
+    trial: true,
+    // charge: true,
     lang: 'zh-cn'
   };
   // 处理为拼接字符串
-  const payloadString = encodeURIComponent(JSON.stringify(translateParam));
+  const payloadString = encodeURIComponent(JSON.stringify(stationParam));
 
   // 工具页面地址
   const hostUrl = 'https://editor.d.design/editor/index.html/#/station';
@@ -63,6 +65,14 @@
       }
     } catch (error) {
       console.error('SDK 加载失败:', error);
+    }
+  });
+  //监听iframe的message事件
+  window.addEventListener('message', (ev) => {
+    const { data, action } = ev.data;
+    if (action === 'submit') {
+      // ToDo 在此处完成自己的任务结果处理逻辑
+      console.log('data :>>>', data);
     }
   });
 </script>

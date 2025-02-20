@@ -1,5 +1,9 @@
 <script setup>
   import router from '@/router';
+  import { ref } from 'vue';
+  const imgSrc = ref(
+    'https://wxalbum-10001658.image.myqcloud.com/wxalbum/53502/20240609013024/88428bc9471525598af2acd4a0cf40e0.jpg'
+  );
 
   // 打开编辑器
   const openEditor = () => {
