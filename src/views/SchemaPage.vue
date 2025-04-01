@@ -9,32 +9,28 @@
   </div>
 </template>
 
-<script>
+<script setup>
   import VueForm from '@lljj/vue3-form-element';
   import { ElMessage } from 'element-plus';
+  import { ref, onMounted } from 'vue';
 
-  export default {
-    name: 'Demo',
-    components: {
-      VueForm
-    },
-    data() {
-      return {
-        formData: {},
-        schema: null
-      };
-    },
-    async created() {
-      try {
-        const response = await fetch('src/assets/demo.json');
-        const data = await response.json();
-        this.schema = data;
-      } catch (error) {
-        console.error('加载 schema.json 失败:', error);
-        ElMessage.error('加载 schema.json 失败，请检查文件格式');
-      }
+  const formData = ref({});
+  const schema = ref(null);
+
+  const loadSchema = async () => {
+    try {
+      const response = await fetch('src/assets/demo.json');
+      const data = await response.json();
+      schema.value = data;
+    } catch (error) {
+      console.error('加载 schema.json 失败:', error);
+      ElMessage.error('加载 schema.json 失败，请检查文件格式');
     }
   };
+
+  onMounted(() => {
+    loadSchema();
+  });
 </script>
 
 <style scoped>
