@@ -5,7 +5,7 @@ import CascaderPage from '@/views/CascaderPage.vue';
 import AgGridPage from '@/views/AgGridPage.vue';
 import UtilsPage from '@/views/UtilsPage.vue';
 import RulerPage from '@/views/RulerPage.vue';
-
+import SchemaPage from '@/views/SchemaPage.vue';
 const routes = [
   {
     path: '/',
@@ -36,6 +36,11 @@ const routes = [
     path: '/ruler',
     name: 'ruler',
     component: RulerPage
+  },
+  {
+    path: '/schema',
+    name: 'schema',
+    component: SchemaPage
   }
 ];
 

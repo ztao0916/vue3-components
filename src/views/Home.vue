@@ -29,6 +29,10 @@
   const openRuler = () => {
     router.push('/ruler');
   };
+  //schema.json处理
+  const openSchema = () => {
+    router.push('/schema');
+  };
 </script>
 
 <template>
@@ -89,6 +93,17 @@
           <el-icon><Crop /></el-icon>
         </template>
         标尺功能
+      </el-button>
+      <el-button
+        type="primary"
+        size="large"
+        class="nav-button"
+        @click="openSchema"
+      >
+        <template #icon>
+          <el-icon><Document /></el-icon>
+        </template>
+        schema.json处理
       </el-button>
     </div>
   </div>
