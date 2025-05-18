@@ -92,6 +92,22 @@
 
       if (value.type === 'array' && value.items?.type === 'object') {
         // 处理数组类型的字段
+        const enumValues = [];
+        const enumNames = [];
+
+        // 从items.properties中提取enum和enumNames
+        if (value.items.properties) {
+          Object.values(value.items.properties).forEach((prop) => {
+            if (prop.value?.enum && prop.value?.enumNames) {
+              enumValues.push(...prop.value.enum);
+              enumNames.push(...prop.value.enumNames);
+            } else if (prop.enum && prop.enumNames) {
+              enumValues.push(...prop.enum);
+              enumNames.push(...prop.enumNames);
+            }
+          });
+        }
+
         formilySchema.properties[key] = {
           type: 'array',
           title: value.title || key,
@@ -99,7 +115,14 @@
           'x-component': 'Select',
           'x-component-props': {
             mode: 'multiple',
-            placeholder: `请选择${value.title || key}`
+            placeholder: `请选择${value.title || key}`,
+            options:
+              enumValues.length > 0
+                ? enumValues.map((value, index) => ({
+                    label: enumNames[index] || value,
+                    value: value
+                  }))
+                : []
           },
           required: amazonSchema.required?.includes(key),
           description: value.description
@@ -111,22 +134,41 @@
         }
       } else {
         // 处理基础类型字段
+        let enumValues = [];
+        let enumNames = [];
+
+        // 从enum和enumNames中获取选项
+        if (value.enum && value.enumNames) {
+          enumValues = value.enum;
+          enumNames = value.enumNames;
+        }
+        // 从anyOf中获取选项
+        else if (value.anyOf) {
+          value.anyOf.forEach((item) => {
+            if (item.enum && item.enumNames) {
+              enumValues.push(...item.enum);
+              enumNames.push(...item.enumNames);
+            }
+          });
+        }
+
         formilySchema.properties[key] = {
           type: value.type || 'string',
           title: value.title || key,
           'x-decorator': 'FormItem',
-          'x-component': value.enum ? 'Select' : 'Input',
-          'x-component-props': value.enum
-            ? {
-                placeholder: `请选择${value.title || key}`,
-                options: value.enum.map((item) => ({
-                  label: item,
-                  value: item
-                }))
-              }
-            : {
-                placeholder: `请输入${value.title || key}`
-              },
+          'x-component': enumValues.length > 0 ? 'Select' : 'Input',
+          'x-component-props':
+            enumValues.length > 0
+              ? {
+                  placeholder: `请选择${value.title || key}`,
+                  options: enumValues.map((value, index) => ({
+                    label: enumNames[index] || value,
+                    value: value
+                  }))
+                }
+              : {
+                  placeholder: `请输入${value.title || key}`
+                },
           required: amazonSchema.required?.includes(key),
           description: value.description,
           maxLength: value.maxLength
