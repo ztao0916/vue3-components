@@ -11,6 +11,9 @@
   "dependencies": {
     "@ag-grid-community/locale": "^32.0.2",
     "@element-plus/icons-vue": "^2.3.1",
+    "@formily/core": "^2.3.7",
+    "@formily/element-plus": "^1.1.0",
+    "@formily/vue": "^2.3.7",
     "@lljj/vue3-form-element": "^1.19.0",
     "@toast-ui/vue-image-editor": "^3.15.2",
     "@vueuse/core": "^11.0.3",
