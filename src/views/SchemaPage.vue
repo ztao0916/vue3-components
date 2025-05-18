@@ -97,10 +97,13 @@
 
         // 从items.properties中提取enum和enumNames
         if (value.items.properties) {
-          Object.values(value.items.properties).forEach((prop) => {
-            if (prop.value?.enum && prop.value?.enumNames) {
-              enumValues.push(...prop.value.enum);
-              enumNames.push(...prop.value.enumNames);
+          Object.entries(value.items.properties).forEach(([propKey, prop]) => {
+            if (
+              prop.properties?.value?.enum &&
+              prop.properties?.value?.enumNames
+            ) {
+              enumValues.push(...prop.properties.value.enum);
+              enumNames.push(...prop.properties.value.enumNames);
             } else if (prop.enum && prop.enumNames) {
               enumValues.push(...prop.enum);
               enumNames.push(...prop.enumNames);
@@ -112,18 +115,20 @@
           type: 'array',
           title: value.title || key,
           'x-decorator': 'FormItem',
-          'x-component': 'Select',
-          'x-component-props': {
-            mode: 'multiple',
-            placeholder: `请选择${value.title || key}`,
-            options:
-              enumValues.length > 0
-                ? enumValues.map((value, index) => ({
+          'x-component': enumValues.length > 0 ? 'Select' : 'Input',
+          'x-component-props':
+            enumValues.length > 0
+              ? {
+                  mode: 'multiple',
+                  placeholder: `请选择${value.title || key}`,
+                  options: enumValues.map((value, index) => ({
                     label: enumNames[index] || value,
                     value: value
                   }))
-                : []
-          },
+                }
+              : {
+                  placeholder: `请输入${value.title || key}`
+                },
           required: amazonSchema.required?.includes(key),
           description: value.description
         };
