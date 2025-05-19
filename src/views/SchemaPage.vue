@@ -15,6 +15,7 @@
   import { onMounted, ref } from 'vue';
   import { createForm } from '@formily/core';
   import { createSchemaField, FormProvider } from '@formily/vue';
+  import jsonData from '@/utils/demo.json';
   import {
     FormItem,
     FormLayout,
@@ -191,8 +192,7 @@
 
   const loadSchema = async () => {
     try {
-      const response = await fetch('src/assets/demo.json');
-      const data = await response.json();
+      const data = jsonData;
       schema.value = transformSchema(data);
       console.log('data', data);
       console.log('转换后的schema:', schema.value);
