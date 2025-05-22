@@ -5,17 +5,28 @@ export function transformJsonSchemaToForm (schema) {
     fields: []
   };
 
+  // 检查是否为引用字段
+  const isRefField = (value, key) => {
+    return (
+      value.$ref ||
+      key === 'marketplace_id' ||
+      key === 'language_tag' ||
+      value.default_ === 'en_US' ||
+      value.default_ === 'ATVPDKIKX0DER'
+    );
+  };
+
   // 处理属性
   if (schema.properties) {
     Object.entries(schema.properties).forEach(([key, value]) => {
-      // 跳过隐藏字段
-      if (value.hidden) return;
+      // 跳过隐藏字段和引用字段
+      if (value.hidden || isRefField(value, key)) return;
 
       // 基础字段信息
       const field = {
         key,
-        label: value.title || key,
-        description: value.description || '',
+        label: value.tTitle || value.title || key,
+        description: value.tDescription || value.description || '',
         required: schema.required?.includes(key) || false,
         type: 'input' // 默认为输入框
       };
@@ -38,13 +49,14 @@ export function transformJsonSchemaToForm (schema) {
           field.children = [];
           Object.entries(value.items.properties).forEach(
             ([childKey, childValue]) => {
-              // 跳过隐藏字段
-              if (childValue.hidden) return;
+              // 跳过隐藏字段和引用字段
+              if (childValue.hidden || isRefField(childValue, childKey)) return;
 
               const childField = {
                 key: `${key}.${childKey}`,
-                label: childValue.title || childKey,
-                description: childValue.description || '',
+                label: childValue.tTitle || childValue.title || childKey,
+                description:
+                  childValue.tDescription || childValue.description || '',
                 required: value.items.required?.includes(childKey) || false,
                 type: 'input'
               };
@@ -61,6 +73,11 @@ export function transformJsonSchemaToForm (schema) {
               field.children.push(childField);
             }
           );
+
+          // 如果没有有效的子字段，则跳过该数组字段
+          if (field.children.length === 0) {
+            return;
+          }
         }
       }
 
@@ -80,11 +97,28 @@ export function processFormData (formData) {
       // 处理嵌套属性
       const [parent, child] = key.split('.');
       if (!result[parent]) {
-        result[parent] = [{}];
+        result[parent] = [
+          {
+            // 添加默认的 marketplace_id 和 language_tag
+            marketplace_id: 'ATVPDKIKX0DER',
+            language_tag: 'en_US'
+          }
+        ];
       }
       result[parent][0][child] = value;
     } else {
-      result[key] = value;
+      // 对于非嵌套属性，检查是否需要包装成数组
+      if (key === 'brand' || key === 'item_name') {
+        result[key] = [
+          {
+            value,
+            marketplace_id: 'ATVPDKIKX0DER',
+            language_tag: 'en_US'
+          }
+        ];
+      } else {
+        result[key] = value;
+      }
     }
   });
 

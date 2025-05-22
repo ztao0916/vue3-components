@@ -3,7 +3,7 @@
     <h1>Schema Form</h1>
     <el-form
       :model="formData"
-      label-width="200px"
+      label-width="400px"
       @submit.prevent="handleSubmit"
     >
       <template v-for="field in formFields" :key="field.key">
