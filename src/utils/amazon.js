@@ -16,6 +16,10 @@ export function transformJsonSchemaToForm (schema) {
     );
   };
 
+  // 临时存储所有字段
+  const requiredFields = [];
+  const optionalFields = [];
+
   // 处理属性
   if (schema.properties) {
     Object.entries(schema.properties).forEach(([key, value]) => {
@@ -81,12 +85,27 @@ export function transformJsonSchemaToForm (schema) {
           if (field.children.length === 0) {
             return;
           }
+
+          // 对子字段进行排序：必填在前，非必填在后
+          field.children.sort((a, b) => {
+            if (a.required && !b.required) return -1;
+            if (!a.required && b.required) return 1;
+            return 0;
+          });
         }
       }
 
-      formConfig.fields.push(field);
+      // 将字段添加到对应的数组中
+      if (field.required) {
+        requiredFields.push(field);
+      } else {
+        optionalFields.push(field);
+      }
     });
   }
+
+  // 合并必填和非必填字段
+  formConfig.fields = [...requiredFields, ...optionalFields];
 
   return formConfig;
 }
