@@ -204,6 +204,7 @@
 
   onMounted(() => {
     const config = transformJsonSchemaToForm(jsonData);
+    console.log('config', config);
     formFields.value = config.fields;
   });
 
