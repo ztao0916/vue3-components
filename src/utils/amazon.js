@@ -57,7 +57,10 @@ export function transformJsonSchemaToForm (schema) {
                 label: childValue.tTitle || childValue.title || childKey,
                 description:
                   childValue.tDescription || childValue.description || '',
-                required: value.items.required?.includes(childKey) || false,
+                // 如果父字段是必填的，value 字段也是必填的
+                required:
+                  (schema.required?.includes(key) && childKey === 'value') ||
+                  false,
                 type: 'input'
               };
 
