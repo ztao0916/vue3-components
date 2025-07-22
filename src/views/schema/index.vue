@@ -59,11 +59,10 @@
   console.log('- 完整字段数量:', Object.keys(fullData).length);
 
   // 验证所有生成的数据
-  const templateErrors = jsonSchema.validate(templateData);
-  const complementedErrors = jsonSchema.validate(complementedData);
-  const fullDataErrors = jsonSchema.validate(fullData);
+  const templateErrors = jsonSchema.validate(templateData).errors;
+  const complementedErrors = jsonSchema.validate(complementedData).errors;
+  const fullDataErrors = jsonSchema.validate(fullData).errors;
 
-  console.log('\n=== 校验结果对比 ===');
   console.log(
     '完全生成:',
     templateErrors.length === 0 ? '✅ 通过' : `❌ ${templateErrors.length} 错误`
@@ -81,10 +80,9 @@
 
   // 对比：空数据的错误
   const myData = {};
-  const errors = jsonSchema.validate(myData);
-  console.log(errors);
+  const errors = jsonSchema.validate(myData).errors;
   let requiredArr = [];
-  errors.errors.forEach((item) => {
+  errors.forEach((item) => {
     if (requiredArr.includes(item.data.key)) {
       return;
     }
