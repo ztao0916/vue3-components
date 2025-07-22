@@ -19,7 +19,7 @@
     "ajv": "^8.17.1",
     "element-plus": "^2.7.6",
     "fabric": "^4.2.0",
-    "json-schema-library": "10.0.0-rc2",
+    "json-schema-library": "^10.1.2",
     "mt-image-editor-sdk": "3.3.4",
     "normalize.css": "^8.0.1",
     "sass": "^1.69.5",
