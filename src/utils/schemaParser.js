@@ -67,6 +67,71 @@ function getPropertyType(property, rootSchema) {
 }
 
 /**
+ * 递归处理 items 的深层嵌套结构
+ * @param {Object} itemsProperty - items 属性定义
+ * @param {string} currentPath - 当前路径
+ * @param {Object} rootSchema - 根 schema 对象
+ * @returns {Object} 处理后的 items 信息
+ */
+function processItemsRecursively(itemsProperty, currentPath, rootSchema) {
+  // 获取 items 的真实类型信息
+  const itemsTypeInfo = getPropertyType(itemsProperty, rootSchema);
+
+  const itemsInfo = {
+    type: itemsTypeInfo.type
+  };
+
+  // 如果 items 是对象类型且有 properties，递归处理
+  if (itemsProperty.type === 'object' && itemsProperty.properties) {
+    itemsInfo.properties = {};
+
+    // 遍历 items 下的 properties
+    Object.keys(itemsProperty.properties).forEach((itemPropName) => {
+      const itemProperty = itemsProperty.properties[itemPropName];
+
+      // 获取每个 item 属性的真实类型信息
+      const itemPropTypeInfo = getPropertyType(itemProperty, rootSchema);
+
+      itemsInfo.properties[itemPropName] = {
+        type: itemPropTypeInfo.type,
+        title: itemPropTypeInfo.title || itemProperty.title,
+        description: itemPropTypeInfo.description || itemProperty.description,
+        examples: itemPropTypeInfo.examples || itemProperty.examples,
+        required: itemsProperty.required
+          ? itemsProperty.required.includes(itemPropName)
+          : false,
+        enum: itemPropTypeInfo.enum,
+        enumNames: itemPropTypeInfo.enumNames,
+        default: itemPropTypeInfo.default,
+        editable: itemPropTypeInfo.editable,
+        hidden: itemPropTypeInfo.hidden
+      };
+
+      // 如果是对象类型且有 properties，继续递归
+      if (itemProperty.type === 'object' && itemProperty.properties) {
+        const nestedResults = parseSchemaProperties(
+          itemProperty,
+          `${currentPath}.properties.${itemPropName}`,
+          rootSchema
+        );
+        itemsInfo.properties[itemPropName].nestedProperties = nestedResults;
+      }
+
+      // 如果是数组类型且有 items，递归处理嵌套的 items
+      if (itemProperty.type === 'array' && itemProperty.items) {
+        itemsInfo.properties[itemPropName].items = processItemsRecursively(
+          itemProperty.items,
+          `${currentPath}.properties.${itemPropName}.items`,
+          rootSchema
+        );
+      }
+    });
+  }
+
+  return itemsInfo;
+}
+
+/**
  * 递归遍历 JSON Schema properties
  * @param {Object} schema - JSON Schema 对象
  * @param {string} parentPath - 父级路径，用于标识嵌套层级
@@ -118,82 +183,13 @@ export function parseSchemaProperties(
       hidden: typeInfo.hidden
     };
 
-    // 如果是数组类型，处理 items
+    // 如果是数组类型，处理 items（使用新的递归函数）
     if (property.type === 'array' && property.items) {
-      // 获取 items 的真实类型信息
-      const itemsTypeInfo = getPropertyType(property.items, rootSchema);
-
-      propertyInfo.items = {
-        type: itemsTypeInfo.type
-      };
-
-      // 如果 items 是对象类型且有 properties，递归处理
-      if (property.items.type === 'object' && property.items.properties) {
-        propertyInfo.items.properties = {};
-
-        // 遍历 items 下的 properties
-        Object.keys(property.items.properties).forEach((itemPropName) => {
-          const itemProperty = property.items.properties[itemPropName];
-
-          // 获取每个 item 属性的真实类型信息
-          const itemPropTypeInfo = getPropertyType(itemProperty, rootSchema);
-
-          propertyInfo.items.properties[itemPropName] = {
-            type: itemPropTypeInfo.type,
-            title: itemPropTypeInfo.title || itemProperty.title,
-            description:
-              itemPropTypeInfo.description || itemProperty.description,
-            examples: itemPropTypeInfo.examples || itemProperty.examples,
-            required: property.items.required
-              ? property.items.required.includes(itemPropName)
-              : false,
-            // 添加更多属性信息
-            enum: itemPropTypeInfo.enum,
-            enumNames: itemPropTypeInfo.enumNames,
-            default: itemPropTypeInfo.default,
-            editable: itemPropTypeInfo.editable,
-            hidden: itemPropTypeInfo.hidden
-          };
-
-          // 如果还有更深层的嵌套，继续递归
-          if (itemProperty.type === 'object' && itemProperty.properties) {
-            const nestedResults = parseSchemaProperties(
-              itemProperty,
-              `${currentPath}.items.properties.${itemPropName}`,
-              rootSchema
-            );
-            propertyInfo.items.properties[itemPropName].nestedProperties =
-              nestedResults;
-          }
-
-          // 如果是数组类型，处理嵌套的 items
-          if (itemProperty.type === 'array' && itemProperty.items) {
-            // 获取嵌套 items 的真实类型信息
-            const nestedItemsTypeInfo = getPropertyType(
-              itemProperty.items,
-              rootSchema
-            );
-
-            propertyInfo.items.properties[itemPropName].items = {
-              type: nestedItemsTypeInfo.type
-            };
-
-            if (
-              itemProperty.items.type === 'object' &&
-              itemProperty.items.properties
-            ) {
-              const nestedResults = parseSchemaProperties(
-                itemProperty.items,
-                `${currentPath}.items.properties.${itemPropName}.items`,
-                rootSchema
-              );
-              propertyInfo.items.properties[
-                itemPropName
-              ].items.nestedProperties = nestedResults;
-            }
-          }
-        });
-      }
+      propertyInfo.items = processItemsRecursively(
+        property.items,
+        `${currentPath}.items`,
+        rootSchema
+      );
     }
 
     // 如果是对象类型且有 properties，递归处理
@@ -253,6 +249,22 @@ export function formatParsedProperties(parsedProperties, indent = 0) {
           const itemProp = prop.items.properties[itemPropName];
           output += `${indentStr}     - ${itemPropName}: ${itemProp.type}\n`;
 
+          // 如果有嵌套的 items，递归显示
+          if (itemProp.items) {
+            output += `${indentStr}       嵌套Items类型: ${itemProp.items.type}\n`;
+            if (itemProp.items.properties) {
+              output += `${indentStr}       嵌套Items属性:\n`;
+              Object.keys(itemProp.items.properties).forEach(
+                (nestedItemPropName) => {
+                  const nestedItemProp =
+                    itemProp.items.properties[nestedItemPropName];
+                  output += `${indentStr}         - ${nestedItemPropName}: ${nestedItemProp.type}\n`;
+                }
+              );
+            }
+          }
+
+          // 如果有嵌套的 properties，递归显示
           if (
             itemProp.nestedProperties &&
             itemProp.nestedProperties.length > 0
@@ -279,6 +291,42 @@ export function formatParsedProperties(parsedProperties, indent = 0) {
 }
 
 /**
+ * 递归转换 items 结构为对象格式
+ * @param {Object} itemsInfo - items 信息对象
+ * @returns {Object} 转换后的 items 对象
+ */
+function convertItemsToObject(itemsInfo) {
+  const itemsObj = {
+    type: itemsInfo.type
+  };
+
+  if (itemsInfo.properties) {
+    itemsObj.properties = {};
+    Object.keys(itemsInfo.properties).forEach((itemPropName) => {
+      const itemProp = itemsInfo.properties[itemPropName];
+      itemsObj.properties[itemPropName] = {
+        type: itemProp.type
+      };
+
+      // 如果有嵌套的 items，递归处理
+      if (itemProp.items) {
+        itemsObj.properties[itemPropName].items = convertItemsToObject(
+          itemProp.items
+        );
+      }
+
+      // 如果有嵌套的 properties，递归处理
+      if (itemProp.nestedProperties && itemProp.nestedProperties.length > 0) {
+        itemsObj.properties[itemPropName].nestedProperties =
+          convertToObjectArray(itemProp.nestedProperties);
+      }
+    });
+  }
+
+  return itemsObj;
+}
+
+/**
  * 将解析结果转换为您要求的对象数组格式
  * @param {Array} parsedProperties - 解析后的属性数组
  * @returns {Array} 转换后的对象数组
@@ -292,20 +340,16 @@ export function convertToObjectArray(parsedProperties) {
       type: prop.type
     };
 
+    // 如果有 items，使用递归函数处理
     if (prop.items) {
-      obj[prop.name].items = {
-        type: prop.items.type
-      };
+      obj[prop.name].items = convertItemsToObject(prop.items);
+    }
 
-      if (prop.items.properties) {
-        obj[prop.name].items.properties = {};
-        Object.keys(prop.items.properties).forEach((itemPropName) => {
-          const itemProp = prop.items.properties[itemPropName];
-          obj[prop.name].items.properties[itemPropName] = {
-            type: itemProp.type
-          };
-        });
-      }
+    // 如果有嵌套属性，递归处理
+    if (prop.nestedProperties && prop.nestedProperties.length > 0) {
+      obj[prop.name].nestedProperties = convertToObjectArray(
+        prop.nestedProperties
+      );
     }
 
     result.push(obj);
